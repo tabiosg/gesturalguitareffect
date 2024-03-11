@@ -20,7 +20,7 @@ public:
         Wire.endTransmission(); // End transmission
     }
     
-    void update() {
+    void getAllData() {
         // Writing to the device
         Wire.beginTransmission(SAD_W_A); // Begin transmission to device
         Wire.write(OUT_X_L | 0x80); // Suboperation code to write
@@ -40,12 +40,12 @@ public:
             uint8_t zl = Wire.read();
             uint8_t zh = Wire.read();
             int16_t zdata = (zh << 8) | zl;
-            // Serial.print("x: ");
-            // Serial.print(convertRawToDegrees(xdata));  // divide by 16384.0 to get Gs
-            // Serial.print(", y: ");
-            // Serial.print(convertRawToDegrees(ydata));
-            // Serial.print(", z: ");
-            // Serial.println(convertRawToDegrees(zdata));
+            Serial.print("x: ");
+            Serial.print(convertRawToDegrees(xdata));  // divide by 16384.0 to get Gs
+            Serial.print(", y: ");
+            Serial.print(convertRawToDegrees(ydata));
+            Serial.print(", z: ");
+            Serial.println(convertRawToDegrees(zdata));
         } else {
             Serial.println("No data received");
         }
