@@ -17,18 +17,9 @@ public:
   }
 
 private:
-  void applyDelay(audio_block_t *block) {
-    for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-      int16_t input = block->data[i];
-      int16_t output = mDelayBuffer[mWriteIndex];
-      mDelayBuffer[mWriteIndex] = input;
-      mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
-      // block->data[i] = output;
-      block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
-    }
-    // Output the delayed audio
-    transmit(block);
-  }
+  void applyDelay(audio_block_t *block);
+
+  void updateDelayBuffer(audio_block_t *block);
 
   GuitarEffect mCurrentEffect;
   audio_block_t *inputQueueArray[1];

@@ -10,7 +10,6 @@
 #include <Wire.h>
 
 #include <Audio.h>
-#include <Wire.h>
 #include <SPI.h>
 
 // Define the audio connections
@@ -18,7 +17,8 @@ AudioInputI2S            input;        // Input from audio codec
 AudioOutputI2S           output;       // Output to audio codec
 AudioControlSGTL5000     codec;        // Audio codec control
 
-// SDA is 18, SCL is 19  - https://www.pjrc.com/teensy/td_libs_Wire.html
+// Wire: SDA is 18, SCL is 19  - https://www.pjrc.com/teensy/td_libs_Wire.html
+// Wire2: SDA is 25, SCL is 24  - https://www.pjrc.com/teensy/td_libs_Wire.html
 
 #define NONE_PIN 29
 #define TREMOLO_PIN 30
@@ -35,7 +35,7 @@ AudioConnection          patchCord3(input, 1, gAudioEffectGesture, 0);
 AudioConnection          patchCord4(gAudioEffectGesture, 0, output, 1);
 
 void setup() {
-  Wire.begin(); // Initialize I2C communication
+  Wire2.begin(); // Initialize I2C communication
   Serial.begin(9600); // Initialize Serial communication
 
    // Initialize the audio shield and codec
@@ -45,6 +45,11 @@ void setup() {
   codec.volume(0.6);                      // Set volume level
 
   delay(1000); // Delay for stability
+
+  pinMode(NONE_PIN, INPUT_PULLUP);
+  pinMode(TREMOLO_PIN, INPUT_PULLUP);
+  pinMode(DELAY_PIN, INPUT_PULLUP);
+  pinMode(FUZZ_PIN, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(NONE_PIN), doNoneEffect, RISING);
   attachInterrupt(digitalPinToInterrupt(TREMOLO_PIN), doTremoloEffect, RISING);
@@ -56,23 +61,25 @@ void setup() {
 
 void loop() {
   Serial.println(gAccel.getZDegrees());
-  // gAccel.update();
-
   // delay(1000); // Delay before next iteration
 }
 
 void doNoneEffect() {
+  Serial.println("None");
   gAudioEffectGesture.changeEffect(GuitarEffect::None);
 }
 
 void doTremoloEffect() {
+  Serial.println("Tremolo");
   gAudioEffectGesture.changeEffect(GuitarEffect::Tremolo);
 }
 
 void doDelayEffect() {
+  Serial.println("Delay");
   gAudioEffectGesture.changeEffect(GuitarEffect::Delay);
 }
 
 void doFuzzEffect() {
+  Serial.println("Fuzz");
   gAudioEffectGesture.changeEffect(GuitarEffect::Fuzz);
 }
