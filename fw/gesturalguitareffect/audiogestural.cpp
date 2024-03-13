@@ -5,6 +5,7 @@ AudioEffectGesture::AudioEffectGesture() : AudioStream(1, inputQueueArray) {
   mCurrentEffect = GuitarEffect::Delay;
   memset(mDelayBuffer, 0, DELAY_LENGTH * sizeof(int16_t));
   mWriteIndex = 0;
+  mDelayMixRatio = 0.5; // Initial mix ratio (50% delayed, 50% original)
 }
 
 void AudioEffectGesture::changeEffect(GuitarEffect effect) {

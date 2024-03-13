@@ -12,6 +12,10 @@ public:
 
   virtual void update(void);
 
+  void setDelayMixRatio(float ratio) {
+    mDelayMixRatio = ratio;
+  }
+
 private:
   void applyDelay(audio_block_t *block) {
     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
@@ -19,7 +23,8 @@ private:
       int16_t output = mDelayBuffer[mWriteIndex];
       mDelayBuffer[mWriteIndex] = input;
       mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
-      block->data[i] = output;
+      // block->data[i] = output;
+      block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
     }
     // Output the delayed audio
     transmit(block);
@@ -29,4 +34,5 @@ private:
   audio_block_t *inputQueueArray[1];
   int16_t mDelayBuffer[DELAY_LENGTH];
   uint32_t mWriteIndex;
+  float mDelayMixRatio;
 };
