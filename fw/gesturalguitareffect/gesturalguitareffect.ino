@@ -6,6 +6,7 @@
 #include "accelerometer.h"
 #include "guitareffects.h"
 #include "audiogestural.h"
+#include "potentiometer.h"
 
 #include <Wire.h>
 
@@ -27,6 +28,7 @@ AudioControlSGTL5000     codec;        // Audio codec control
 
 AudioEffectGesture gAudioEffectGesture;
 Accelerometer gAccel;
+Potentiometer gPotentiometer;
 
 // Define audio connections using AudioConnection
 AudioConnection          patchCord1(input, 0, gAudioEffectGesture, 0);
@@ -35,7 +37,6 @@ AudioConnection          patchCord3(input, 1, gAudioEffectGesture, 0);
 AudioConnection          patchCord4(gAudioEffectGesture, 0, output, 1);
 
 void setup() {
-  Wire2.begin(); // Initialize I2C communication
   Serial.begin(9600); // Initialize Serial communication
 
    // Initialize the audio shield and codec
@@ -60,7 +61,9 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(gAccel.getZDegrees());
+  // Serial.println(gAccel.getZDegrees());
+  // Serial.println(gPotentiometer.getConvertedData());
+  // codec.volume(gPotentiometer.getConvertedData());
   // delay(1000); // Delay before next iteration
 }
 
