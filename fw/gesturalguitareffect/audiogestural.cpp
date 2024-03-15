@@ -6,7 +6,17 @@ AudioEffectGesture::AudioEffectGesture()
   // mCurrentEffect = GuitarEffect::Delay;
   memset(mDelayBuffer, 0, DELAY_LENGTH * sizeof(int16_t));
   mWriteIndex = 0;
-  mDelayMixRatio = 0.5;  // Initial mix ratio (50% delayed, 50% original)
+
+  float sum = 0;
+  mDelayRatios[0] = 1.0f;
+    for (int i = 1; i < NUMBER_DELAY_REPEATS; ++i) {
+        mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
+        sum += mDelayRatios[i];  // Values: 1, 2, 4, 8, 16, ...
+    }
+
+    for (int i = 0; i < NUMBER_DELAY_REPEATS; ++i) {
+        mDelayRatios[i] /= sum;
+    }
 }
 
 void AudioEffectGesture::changeEffect(GuitarEffect effect) {
@@ -42,10 +52,16 @@ void AudioEffectGesture::update(void) {
 void AudioEffectGesture::applyDelay(audio_block_t *block) {
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
     int16_t input = block->data[i];
-    int16_t output = mDelayBuffer[mWriteIndex];
+    // int16_t output = mDelayBuffer[mWriteIndex];
+
+    // block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
+    block->data[i] = 0;
+    for (int j = 0; j < NUMBER_DELAY_REPEATS - 1; ++j) {
+      block->data[i] += mDelayBuffer[(mWriteIndex + (DELAY_LENGTH * j / NUMBER_DELAY_REPEATS)) % DELAY_LENGTH] * mDelayRatios[j];
+    }
     mDelayBuffer[mWriteIndex] = input;
     mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
-    block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
+    block->data[i] += input; // * mDelayRatios[NUMBER_DELAY_REPEATS - 1];
   }
   // Output the delayed audio
   transmit(block);

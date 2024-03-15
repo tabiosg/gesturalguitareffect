@@ -3,6 +3,8 @@
 
 #define DELAY_LENGTH 44100
 
+#define NUMBER_DELAY_REPEATS 10  // Needs to be 2 or greater
+
 class AudioEffectGesture : public AudioStream {
 public:
 
@@ -11,10 +13,6 @@ public:
   void changeEffect(GuitarEffect effect);
 
   virtual void update(void);
-
-  void setDelayMixRatio(float ratio) {
-    mDelayMixRatio = ratio;
-  }
 
 private:
   void applyDelay(audio_block_t *block);
@@ -25,5 +23,5 @@ private:
   audio_block_t *inputQueueArray[1];
   int16_t mDelayBuffer[DELAY_LENGTH];
   uint32_t mWriteIndex;
-  float mDelayMixRatio;
+  float mDelayRatios[NUMBER_DELAY_REPEATS];
 };
