@@ -80,6 +80,9 @@ private:
         float Gs = raw / 16384.0;
         Gs = Gs > 1.0 ? 1.0 : Gs;
         Gs = Gs < -1.0 ? -1.0 : Gs;
-        return asin(Gs) * 180.0 / M_PI;
+        float degrees = asin(Gs) * 180.0 / M_PI;
+        String output = "$ACCELRAWTODEG," + String(raw) + "," + String(degrees) + ",";
+        Serial.println(output);
+        return degrees;
     }
 };

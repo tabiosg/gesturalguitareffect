@@ -19,6 +19,10 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Tremolo effect
   mDepth = value;
   mCurrentNumberDelayRepeats = value * 10;
+  String output = "$POTENTRAWTODEPTH," + String(value) + "," + String(mDepth) + ",";
+  Serial.println(output);
+  output = "$POTENTRAWTOREPEATS," + String(value) + "," + String(mCurrentNumberDelayRepeats) + ",";
+  Serial.println(output);
   // Delay effect
 }
 
@@ -26,6 +30,7 @@ void AudioEffectGesture::updateAccelerometer(float value) {
   // Expecting between -90 and 90. But it's more like -50 and 50
   float accel_min = -50;
   float accel_max = 50;
+  float orig_value = value;
   value = value < accel_min ? accel_min : value;
   value = value > accel_max ? accel_max : value;
   
@@ -38,6 +43,13 @@ void AudioEffectGesture::updateAccelerometer(float value) {
   if (abs(possibleDelay - mCurrentDelayLength) > 4000) {
     mCurrentDelayLength = possibleDelay;
   }
+
+  String output = "$ACCELRAWTORATE," + String(orig_value) + "," + String(mRate) + ",";
+  Serial.println(output);
+  output = "$ACCELRAWTOPOSSIBLEDELAY," + String(orig_value) + "," + String(possibleDelay) + ",";
+  Serial.println(output);
+  output = "$ACCELRAWTODELAYLENGTH," + String(orig_value) + "," + String(mCurrentDelayLength) + ",";
+  Serial.println(output);
 }
 
 void AudioEffectGesture::changeEffect(GuitarEffect effect) {

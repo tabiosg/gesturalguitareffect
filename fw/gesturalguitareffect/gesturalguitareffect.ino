@@ -65,7 +65,7 @@ void loop() {
   // codec.volume(gPotentiometer.getConvertedData());
   gAudioEffectGesture.updatePotentiometer(gPotentiometer.getConvertedData()); 
   gAudioEffectGesture.updateAccelerometer(gAccel.getZDegrees());
-  // delay(1000); // Delay before next iteration
+  delay(100); // Delay before next iteration
 }
 
 void doNoneEffect() {
