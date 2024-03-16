@@ -116,7 +116,6 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
 void AudioEffectGesture::updateTremolo(audio_block_t *block) {
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    Serial.println(mRate);
     float sincalc =  sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
     float factor = 1.0 + mDepth * sincalc; // TODO
     block->data[i] *= factor;
