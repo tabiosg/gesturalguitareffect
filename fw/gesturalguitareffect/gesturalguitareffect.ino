@@ -61,28 +61,25 @@ void setup() {
 }
 
 void loop() {
-  // Serial.println(gAccel.getZDegrees());
   // Serial.println(gPotentiometer.getConvertedData());
   // codec.volume(gPotentiometer.getConvertedData());
+  gAudioEffectGesture.updatePotentiometer(gPotentiometer.getConvertedData()); 
+  gAudioEffectGesture.updateAccelerometer(gAccel.getZDegrees());
   // delay(1000); // Delay before next iteration
 }
 
 void doNoneEffect() {
-  Serial.println("None");
   gAudioEffectGesture.changeEffect(GuitarEffect::None);
 }
 
 void doTremoloEffect() {
-  Serial.println("Tremolo");
   gAudioEffectGesture.changeEffect(GuitarEffect::Tremolo);
 }
 
 void doDelayEffect() {
-  Serial.println("Delay");
   gAudioEffectGesture.changeEffect(GuitarEffect::Delay);
 }
 
 void doFuzzEffect() {
-  Serial.println("Fuzz");
   gAudioEffectGesture.changeEffect(GuitarEffect::Fuzz);
 }

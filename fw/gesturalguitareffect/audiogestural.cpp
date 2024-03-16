@@ -7,16 +7,30 @@ AudioEffectGesture::AudioEffectGesture()
   memset(mDelayBuffer, 0, DELAY_LENGTH * sizeof(int16_t));
   mWriteIndex = 0;
 
-  float sum = 0;
-  mDelayRatios[0] = 1.0f;
-    for (int i = 1; i < NUMBER_DELAY_REPEATS; ++i) {
-        mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
-        sum += mDelayRatios[i];  // Values: 1, 2, 4, 8, 16, ...
-    }
+  mDepth = 0.5;
+  mRate = 10;
+  updateNumberDelayRepeats(3);
+}
 
-    for (int i = 0; i < NUMBER_DELAY_REPEATS; ++i) {
-        mDelayRatios[i] /= sum;
-    }
+void AudioEffectGesture::updatePotentiometer(float value) {
+  // Expecting between 0.0 and 1.0
+  // Tremolo effect
+  mDepth = value;
+  mCurrentNumberDelayRepeats = value * 10;
+  // Delay effect
+}
+
+void AudioEffectGesture::updateAccelerometer(float value) {
+  // Expecting between -90 and 90.
+  int min = 1;
+  int max = 20;
+
+  float accel_min = -50;
+  float accel_max = 50;
+  value = value < accel_min ? accel_min : value;
+  value = value > accel_max ? accel_max : value;
+
+  mRate = min + map(value, accel_min, accel_max, 0, max - min);
 }
 
 void AudioEffectGesture::changeEffect(GuitarEffect effect) {
@@ -30,7 +44,21 @@ void AudioEffectGesture::update(void) {
     // Check if input data is available
     block = receiveReadOnly(0);
     if (block != NULL) {
-      updateDelayBuffer(block);
+      updateDelayBuffer(block);  // used for Delay effect
+      // Pass the input data to the output
+      transmit(block);
+      // Release the input data block
+      release(block);
+    }
+  } else if (mCurrentEffect == GuitarEffect::Tremolo) {
+    audio_block_t *block;
+    // Check if input data is available
+    block = receiveReadOnly(0);
+    if (block != NULL) {
+
+      updateDelayBuffer(block);  // used for Delay effect
+
+      updateTremolo(block);
       // Pass the input data to the output
       transmit(block);
       // Release the input data block
@@ -56,15 +84,24 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
     // block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
     block->data[i] = 0;
-    for (int j = 0; j < NUMBER_DELAY_REPEATS - 1; ++j) {
-      block->data[i] += mDelayBuffer[(mWriteIndex + (DELAY_LENGTH * j / NUMBER_DELAY_REPEATS)) % DELAY_LENGTH] * mDelayRatios[j];
+    for (int j = 0; j < mCurrentNumberDelayRepeats - 1; ++j) {
+      block->data[i] += mDelayBuffer[(mWriteIndex + (DELAY_LENGTH * j / mCurrentNumberDelayRepeats)) % DELAY_LENGTH] * mDelayRatios[j];
     }
     mDelayBuffer[mWriteIndex] = input;
     mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
-    block->data[i] += input; // * mDelayRatios[NUMBER_DELAY_REPEATS - 1];
+    block->data[i] += input;
   }
   // Output the delayed audio
   transmit(block);
+}
+
+void AudioEffectGesture::updateTremolo(audio_block_t *block) {
+  for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+    Serial.println(mRate);
+    float sincalc =  sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
+    float factor = 1.0 + mDepth * sincalc; // TODO
+    block->data[i] *= factor;
+  }
 }
 
 void AudioEffectGesture::updateDelayBuffer(audio_block_t *block) {
@@ -73,4 +110,27 @@ void AudioEffectGesture::updateDelayBuffer(audio_block_t *block) {
     mDelayBuffer[mWriteIndex] = input;
     mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
   }
+}
+
+void AudioEffectGesture::updateNumberDelayRepeats(int new_num) {
+  if (new_num == mCurrentNumberDelayRepeats) {
+    return;
+  }
+  if (new_num < 0 || new_num >= MAX_NUMBER_DELAY_REPEATS) {
+    return;
+  }
+
+  mCurrentNumberDelayRepeats = new_num;
+
+  float sum = 0;
+  mDelayRatios[0] = 1.0f;
+  for (int i = 1; i < mCurrentNumberDelayRepeats - 1; ++i) {
+      mDelayRatios[i] = mDelayRatios[i - 1] * 1.25;
+      sum += mDelayRatios[i];
+  }
+
+  for (int i = 0; i < mCurrentNumberDelayRepeats - 1; ++i) {
+      mDelayRatios[i] /= sum;
+  }
+
 }
