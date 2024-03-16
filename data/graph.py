@@ -16,65 +16,8 @@ with open("alldata.txt", "r") as file:
         if line.startswith("$"):
             key, *values = line.strip().split(',')
             graph_name = key.strip("$")
-            try:
-                graphs_data[graph_name][0].append(float(values[0]))
-                graphs_data[graph_name][1].append(float(values[1]))
-            except Exception:
-                print("lol")
-                break
-
-# # Calculate time points
-# time_points = [i/10 for i in range(len(graphs_data["ACCELRAWTODELAYLENGTH"][0]))]
-
-# # Plot all graphs together
-# fig, axs = plt.subplots(3, 2, figsize=(12, 12))
-# fig.suptitle('Plots')
-
-# axs[0, 0].plot(time_points, graphs_data["ACCELRAWTODELAYLENGTH"][0])
-# axs[0, 0].plot(time_points, graphs_data["ACCELRAWTODELAYLENGTH"][1])
-# axs[0, 0].set_title('Time vs. Accel degrees and delay length')
-# axs[0, 0].set_xlabel('Time (s)')
-# axs[0, 0].set_ylabel('Acceleration Degrees')
-# axs[0, 0].legend(labels=['Raw Accel', 'Delay Length'])
-
-# axs[0, 1].plot(time_points, graphs_data["POTENTRAWTODEPTH"][0])
-# axs[0, 1].plot(time_points, graphs_data["POTENTRAWTODEPTH"][1])
-# axs[0, 1].set_title('Time vs. potentiometer and tremolo depth')
-# axs[0, 1].set_xlabel('Time (s)')
-# axs[0, 1].set_ylabel('Potentiometer')
-# axs[0, 1].legend(labels=['Raw Potent', 'Tremolo Depth'])
-
-# axs[1, 0].plot(time_points, graphs_data["POTENTRAWTOREPEATS"][0])
-# axs[1, 0].plot(time_points, graphs_data["POTENTRAWTOREPEATS"][1])
-# axs[1, 0].set_title('Time vs. potentiometer and delay repeats')
-# axs[1, 0].set_xlabel('Time (s)')
-# axs[1, 0].set_ylabel('Tremolo Depth')
-# axs[1, 0].legend(labels=['Raw Potent', 'Delay Repeats'])
-
-# axs[1, 1].plot(time_points, graphs_data["ACCELRAWTODEG"][0])
-# axs[1, 1].plot(time_points, graphs_data["ACCELRAWTODEG"][1])
-# axs[1, 1].set_title('Time vs. raw accel and degrees')
-# axs[1, 1].set_xlabel('Time (s)')
-# axs[1, 1].set_ylabel('Potentiometer')
-# axs[1, 1].legend(labels=['Raw Accel', 'Accel Degrees'])
-
-# axs[2, 0].plot(time_points, graphs_data["ACCELRAWTORATE"][0])
-# axs[2, 0].plot(time_points, graphs_data["ACCELRAWTORATE"][1])
-# axs[2, 0].set_title('Time vs. accel degrees and tremolo rate')
-# axs[2, 0].set_xlabel('Time (s)')
-# axs[2, 0].set_ylabel('Delay Repeats')
-# axs[2, 0].legend(labels=['Accel Degrees', 'Tremolo Rate'])
-
-# axs[2, 1].plot(time_points, graphs_data["ACCELRAWTOPOSSIBLEDELAY"][0])
-# axs[2, 1].plot(time_points, graphs_data["ACCELRAWTOPOSSIBLEDELAY"][1])
-# axs[2, 1].set_title('Time vs. accel degrees and possible Delay')
-# axs[2, 1].set_xlabel('Time (s)')
-# axs[2, 1].set_ylabel('Delay Repeats')
-# axs[2, 1].legend(labels=['Accel Degrees', 'Possible Delay Length'])
-
-# plt.tight_layout()
-# plt.show()
-
+            graphs_data[graph_name][0].append(float(values[0]))
+            graphs_data[graph_name][1].append(float(values[1]))
 
 # Calculate time points
 time_points = [i/10 for i in range(len(graphs_data["ACCELRAWTODELAYLENGTH"][0]))]
