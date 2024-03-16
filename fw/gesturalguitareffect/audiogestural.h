@@ -18,6 +18,29 @@ public:
 
   void updateAccelerometer(float value);
 
+  GuitarEffect getEffect() {
+    return mCurrentEffect;
+  }
+
+  void printEffect() {
+    switch (mCurrentEffect) {
+        case GuitarEffect::None:
+            Serial.println("$EFFECT, None");
+            break;
+        case GuitarEffect::Tremolo:
+            Serial.println("$EFFECT, Tremolo");
+            break;
+        case GuitarEffect::Delay:
+            Serial.println("$EFFECT, Delay");
+            break;
+        case GuitarEffect::Fuzz:
+            Serial.println("$EFFECT, Fuzz");
+            break;
+        default:
+            Serial.println("Unknown effect");
+    }
+  }
+
 private:
   void applyDelay(audio_block_t *block);
 

@@ -14,7 +14,10 @@ class Potentiometer {
     }
     
     float getConvertedData() {
-      float scaledValue = map(getRawData(), 0, 1023, 0, 100) / 100.0; // Scale the value to range 0.0 to 1.0
+      int rawData = getRawData();
+      float scaledValue = map(rawData, 0, 1023, 0, 100) / 100.0; // Scale the value to range 0.0 to 1.0
+      String output = "$POTENTRAWTOSCALED," + String(rawData) + "," + String(scaledValue) + ",";
+      Serial.println(output);
       return scaledValue; // Return the scaled value
     }
 };
