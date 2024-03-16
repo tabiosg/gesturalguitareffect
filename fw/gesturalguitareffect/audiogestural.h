@@ -32,6 +32,7 @@ private:
   int16_t mDelayBuffer[DELAY_LENGTH];
   uint32_t mWriteIndex;
   int mCurrentNumberDelayRepeats;
+  int mCurrentDelayLength;
   float mDelayRatios[MAX_NUMBER_DELAY_REPEATS];
   float mDepth; 
   float mRate;

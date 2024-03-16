@@ -9,7 +9,9 @@ AudioEffectGesture::AudioEffectGesture()
 
   mDepth = 0.5;
   mRate = 10;
+
   updateNumberDelayRepeats(3);
+  mCurrentDelayLength = DELAY_LENGTH;
 }
 
 void AudioEffectGesture::updatePotentiometer(float value) {
@@ -21,16 +23,21 @@ void AudioEffectGesture::updatePotentiometer(float value) {
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
-  // Expecting between -90 and 90.
-  int min = 1;
-  int max = 20;
-
+  // Expecting between -90 and 90. But it's more like -50 and 50
   float accel_min = -50;
   float accel_max = 50;
   value = value < accel_min ? accel_min : value;
   value = value > accel_max ? accel_max : value;
+  
+  int min = 1;
+  int max = 20;
 
   mRate = min + map(value, accel_min, accel_max, 0, max - min);
+
+  int possibleDelay = map(value / 20, accel_min / 20, accel_max / 20, 1000, DELAY_LENGTH);
+  if (abs(possibleDelay - mCurrentDelayLength) > 4000) {
+    mCurrentDelayLength = possibleDelay;
+  }
 }
 
 void AudioEffectGesture::changeEffect(GuitarEffect effect) {
@@ -85,7 +92,7 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
     // block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
     block->data[i] = 0;
     for (int j = 0; j < mCurrentNumberDelayRepeats - 1; ++j) {
-      block->data[i] += mDelayBuffer[(mWriteIndex + (DELAY_LENGTH * j / mCurrentNumberDelayRepeats)) % DELAY_LENGTH] * mDelayRatios[j];
+      block->data[i] += mDelayBuffer[(mWriteIndex + (DELAY_LENGTH - mCurrentDelayLength) + (mCurrentDelayLength * j / mCurrentNumberDelayRepeats)) % DELAY_LENGTH] * mDelayRatios[j];
     }
     mDelayBuffer[mWriteIndex] = input;
     mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
