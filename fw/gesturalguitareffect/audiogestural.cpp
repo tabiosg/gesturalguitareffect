@@ -116,7 +116,7 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
 void AudioEffectGesture::updateTremolo(audio_block_t *block) {
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    Serial.println(mRate);
+    // Serial.println(mRate);
     float sincalc =  sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
     float factor = 1.0 + mDepth * sincalc; // TODO
     block->data[i] *= factor;
@@ -144,12 +144,12 @@ void AudioEffectGesture::updateNumberDelayRepeats(int new_num) {
   float sum = 0;
   mDelayRatios[0] = 1.0f;
   for (int i = 1; i < mCurrentNumberDelayRepeats - 1; ++i) {
-      mDelayRatios[i] = mDelayRatios[i - 1] * 1.25;
+      mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
       sum += mDelayRatios[i];
   }
 
   for (int i = 0; i < mCurrentNumberDelayRepeats - 1; ++i) {
-      mDelayRatios[i] /= sum;
+      mDelayRatios[i] /= (sum * 3);
   }
 
 }
