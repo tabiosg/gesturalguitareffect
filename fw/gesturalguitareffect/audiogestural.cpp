@@ -19,9 +19,9 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Tremolo effect
   mDepth = value;
   mCurrentNumberDelayRepeats = value * 10;
-  String output = "$POTENTRAWTODEPTH," + String(value) + "," + String(mDepth) + ",";
+  String output = "$POTENTSCALEDTODEPTH," + String(value) + "," + String(mDepth) + ",";
   Serial.println(output);
-  output = "$POTENTRAWTOREPEATS," + String(value) + "," + String(mCurrentNumberDelayRepeats) + ",";
+  output = "$POTENTSCALEDTOREPEATS," + String(value) + "," + String(mCurrentNumberDelayRepeats) + ",";
   Serial.println(output);
   // Delay effect
 }
@@ -44,11 +44,11 @@ void AudioEffectGesture::updateAccelerometer(float value) {
     mCurrentDelayLength = possibleDelay;
   }
 
-  String output = "$ACCELRAWTORATE," + String(orig_value) + "," + String(mRate) + ",";
+  String output = "$ACCELSCALEDTORATE," + String(orig_value) + "," + String(mRate) + ",";
   Serial.println(output);
-  output = "$ACCELRAWTOPOSSIBLEDELAY," + String(orig_value) + "," + String(possibleDelay) + ",";
+  output = "$ACCELSCALEDTOPOSSIBLEDELAY," + String(orig_value) + "," + String(possibleDelay) + ",";
   Serial.println(output);
-  output = "$ACCELRAWTODELAYLENGTH," + String(orig_value) + "," + String(mCurrentDelayLength) + ",";
+  output = "$ACCELSCALEDTODELAYLENGTH," + String(orig_value) + "," + String(mCurrentDelayLength) + ",";
   Serial.println(output);
 }
 
@@ -143,12 +143,12 @@ void AudioEffectGesture::updateNumberDelayRepeats(int new_num) {
   float sum = 0;
   mDelayRatios[0] = 1.0f;
   for (int i = 1; i < mCurrentNumberDelayRepeats - 1; ++i) {
-      mDelayRatios[i] = mDelayRatios[i - 1] * 1.25;
+      mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
       sum += mDelayRatios[i];
   }
 
   for (int i = 0; i < mCurrentNumberDelayRepeats - 1; ++i) {
-      mDelayRatios[i] /= sum;
+      mDelayRatios[i] /= (sum * 3);
   }
 
 }
