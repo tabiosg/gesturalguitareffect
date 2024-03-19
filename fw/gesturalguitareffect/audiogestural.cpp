@@ -17,7 +17,7 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Expecting between 0.0 and 1.0
   // Tremolo effect
   mDepth = value;
-  mCurrentNumberDelayRepeats = value * 10;
+  updateNumberDelayRepeats(value * 10);
   String output = "$POTENTSCALEDTODEPTH," + String(value) + "," + String(mDepth) + ",";
   Serial.println(output);
   output = "$POTENTSCALEDTOREPEATS," + String(value) + "," + String(mCurrentNumberDelayRepeats) + ",";
@@ -102,14 +102,19 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
     // block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
     block->data[i] = 0;
-    int currentIndex = DELAY_LENGTH + mWriteIndex - mCurrentDelayLength;
     int stepSize = static_cast<int>(mCurrentDelayLength / mCurrentNumberDelayRepeats);
+    int currentIndex = mWriteIndex - stepSize;
+    Serial.println(mCurrentNumberDelayRepeats);
+    Serial.println(mCurrentDelayLength);
     for (int j = 0; j < mCurrentNumberDelayRepeats - 1; ++j) {
-      while (currentIndex > DELAY_LENGTH) {
+      while (currentIndex < 0) {
+        currentIndex += DELAY_LENGTH;
+      }
+      while (currentIndex >= DELAY_LENGTH) {
         currentIndex -= DELAY_LENGTH;
       }
       block->data[i] += mDelayBuffer[currentIndex] * mDelayRatios[j];
-      currentIndex += stepSize;
+      currentIndex -= stepSize;
 
     }
     mDelayBuffer[mWriteIndex] = input;
@@ -127,7 +132,7 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
 void AudioEffectGesture::updateTremolo(audio_block_t *block) {
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    float sincalc =  sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
+    float sincalc = sin(0.00014240362 * mWriteIndex * mRate); // sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
     float factor = 1.0 + mDepth * sincalc;
     block->data[i] *= factor;
   }
@@ -150,21 +155,21 @@ void AudioEffectGesture::updateNumberDelayRepeats(int new_num) {
   if (new_num == mCurrentNumberDelayRepeats) {
     return;
   }
-  if (new_num < 0 || new_num >= MAX_NUMBER_DELAY_REPEATS) {
+  if (new_num < 0 || new_num > MAX_NUMBER_DELAY_REPEATS) {
     return;
   }
 
   mCurrentNumberDelayRepeats = new_num;
 
-  float sum = 0;
-  mDelayRatios[0] = 1.0f;
+  mDelayRatios[0] = 0.9f;
+  float sum = mDelayRatios[0];
   for (int i = 1; i < mCurrentNumberDelayRepeats - 1; ++i) {
-      mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
+      mDelayRatios[i] = mDelayRatios[i - 1] * 0.5;
       sum += mDelayRatios[i];
   }
 
-  for (int i = 0; i < mCurrentNumberDelayRepeats - 1; ++i) {
-      mDelayRatios[i] /= (sum * 3);
-  }
+  // for (int i = 0; i < mCurrentNumberDelayRepeats - 1; ++i) {
+  //     mDelayRatios[i] /= (sum);
+  // }
 
 }
