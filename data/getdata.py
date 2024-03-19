@@ -21,4 +21,4 @@ with open(file_name, 'w') as file:
         print("Keyboard Interrupt, closing the port.")
         ser.close()
         print("Running graph.py...")
-        subprocess.run(["python", "graph.py"])  # Replace "python" with your Python interpreter if needed
+        subprocess.run(["python3", "graph.py"])  # Replace "python" with your Python interpreter if needed
