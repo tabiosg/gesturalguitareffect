@@ -3,7 +3,6 @@
 AudioEffectGesture::AudioEffectGesture()
   : AudioStream(1, inputQueueArray) {
   mCurrentEffect = GuitarEffect::None;
-  // mCurrentEffect = GuitarEffect::Delay;
   memset(mDelayBuffer, 0, DELAY_LENGTH * sizeof(int16_t));
   mWriteIndex = 0;
 
@@ -103,11 +102,23 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
     // block->data[i] = (1 - mDelayMixRatio) * input + mDelayMixRatio * output;
     block->data[i] = 0;
+    int currentIndex = DELAY_LENGTH + mWriteIndex - mCurrentDelayLength;
+    int stepSize = static_cast<int>(mCurrentDelayLength / mCurrentNumberDelayRepeats);
     for (int j = 0; j < mCurrentNumberDelayRepeats - 1; ++j) {
-      block->data[i] += mDelayBuffer[(mWriteIndex + (DELAY_LENGTH - mCurrentDelayLength) + (mCurrentDelayLength * j / mCurrentNumberDelayRepeats)) % DELAY_LENGTH] * mDelayRatios[j];
+      while (currentIndex > DELAY_LENGTH) {
+        currentIndex -= DELAY_LENGTH;
+      }
+      block->data[i] += mDelayBuffer[currentIndex] * mDelayRatios[j];
+      currentIndex += stepSize;
+
     }
     mDelayBuffer[mWriteIndex] = input;
-    mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
+    if (mWriteIndex == (DELAY_LENGTH - 1)) {
+      mWriteIndex = 0;
+    }
+    else {
+      mWriteIndex += 1;
+    }
     block->data[i] += input;
   }
   // Output the delayed audio
@@ -116,9 +127,8 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 
 void AudioEffectGesture::updateTremolo(audio_block_t *block) {
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    // Serial.println(mRate);
     float sincalc =  sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
-    float factor = 1.0 + mDepth * sincalc; // TODO
+    float factor = 1.0 + mDepth * sincalc;
     block->data[i] *= factor;
   }
 }
@@ -127,7 +137,12 @@ void AudioEffectGesture::updateDelayBuffer(audio_block_t *block) {
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
     int16_t input = block->data[i];
     mDelayBuffer[mWriteIndex] = input;
-    mWriteIndex = (mWriteIndex + 1) % DELAY_LENGTH;
+    if (mWriteIndex == (DELAY_LENGTH - 1)) {
+      mWriteIndex = 0;
+    }
+    else {
+      mWriteIndex += 1;
+    }
   }
 }
 
