@@ -63,7 +63,7 @@ void setup() {
 void loop() {
   // Serial.println(gPotentiometer.getConvertedData());
   // codec.volume(gPotentiometer.getConvertedData());
-  gAudioEffectGesture.printEffect();
+  // gAudioEffectGesture.printEffect();
   gAudioEffectGesture.updatePotentiometer(gPotentiometer.getConvertedData()); 
   gAudioEffectGesture.updateAccelerometer(gAccel.getZDegrees());
   delay(100); // Delay before next iteration

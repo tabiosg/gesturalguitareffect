@@ -61,8 +61,6 @@ public:
         Wire2.write(OUT_Z_L | 0x80); // Suboperation code to write
         Wire2.endTransmission(); // End transmission
     
-        delay(10); // Wait for device to process the write operation
-    
         // Reading from the device
         Wire2.requestFrom(SAD_R_A, 2); // Request one byte of data from the device
         if (Wire2.available() == 2) {

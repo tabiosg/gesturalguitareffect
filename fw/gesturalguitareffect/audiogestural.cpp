@@ -9,9 +9,9 @@ AudioEffectGesture::AudioEffectGesture()
   mDepth = 0.5;
   mRate = MAX_RATE;
 
-  mDelayRatios[0] = 0.9f;
+  mDelayRatios[0] = 0.65f;
   for (int i = 1; i < MAX_NUMBER_DELAY_REPEATS; ++i) {
-      mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
+      mDelayRatios[i] = mDelayRatios[i - 1] * 0.65;
   }
 
   mCurrentNumberDelayRepeats = MAX_NUMBER_DELAY_REPEATS;
@@ -25,14 +25,18 @@ void AudioEffectGesture::updatePotentiometer(float value) {
 
   mCurrentNumberDelayRepeats = map(value * 10, 0, 10, MIN_NUMER_DELAY_REPEATS, MAX_NUMBER_DELAY_REPEATS);
 
+  #ifdef DEBUG
   String output = "$POTENTSCALEDTODEPTH," + String(value) + "," + String(mDepth) + ",";
   Serial.println(output);
   output = "$POTENTSCALEDTOREPEATS," + String(value) + "," + String(mCurrentNumberDelayRepeats) + ",";
   Serial.println(output);
   // Delay effect
+  #endif
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
+  static float prev_value_used_for_step_size = 420; 
+
   // Expecting between -90 and 90. But it's more like -50 and 50
   float accel_min = -50;
   float accel_max = 50;
@@ -45,18 +49,20 @@ void AudioEffectGesture::updateAccelerometer(float value) {
 
   mRate = min + map(value, accel_min, accel_max, 0, max - min);
 
-  int possibleCurrentDelayStepSize = map(value, accel_min, accel_max, 100, DELAY_LENGTH / mCurrentNumberDelayRepeats); // MAX_DELAY_STEP_SIZE);
-
-  if (abs(possibleCurrentDelayStepSize - mCurrentDelayStepSize) > 4000) {
+  int possibleCurrentDelayStepSize = map(value, accel_min, accel_max, 100, DELAY_LENGTH / (mCurrentNumberDelayRepeats - 1)); // MAX_DELAY_STEP_SIZE);
+  if (abs(prev_value_used_for_step_size - value) > 10) {
     mCurrentDelayStepSize = possibleCurrentDelayStepSize;
+    prev_value_used_for_step_size = value;
   }
 
+  #ifdef DEBUG
   String output = "$ACCELSCALEDTORATE," + String(orig_value) + "," + String(mRate) + ",";
   Serial.println(output);
   output = "$ACCELSCALEDTOPOSSIBLEDELAY," + String(orig_value) + "," + String(possibleCurrentDelayStepSize) + ",";
   Serial.println(output);
   output = "$ACCELSCALEDTODELAYLENGTH," + String(orig_value) + "," + String(mCurrentDelayStepSize) + ",";
   Serial.println(output);
+  #endif
 }
 
 void AudioEffectGesture::changeEffect(GuitarEffect effect) {
