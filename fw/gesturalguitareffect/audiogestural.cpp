@@ -7,9 +7,9 @@ AudioEffectGesture::AudioEffectGesture()
   mWriteIndex = 0;
 
   mDepth = 0.5;
-  mRate = 10;
+  mRate = MAX_RATE;
 
-  mDelayRatios[0] = 1.0f;
+  mDelayRatios[0] = 0.9f;
   for (int i = 1; i < MAX_NUMBER_DELAY_REPEATS; ++i) {
       mDelayRatios[i] = mDelayRatios[i - 1] * 0.8;
   }
@@ -23,7 +23,7 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Tremolo effect
   mDepth = value / 2.0;  // map to 0 and 0.5
 
-  mCurrentNumberDelayRepeats = map(value * 10, 0, 10, 2, MAX_NUMBER_DELAY_REPEATS);
+  mCurrentNumberDelayRepeats = map(value * 10, 0, 10, MIN_NUMER_DELAY_REPEATS, MAX_NUMBER_DELAY_REPEATS);
 
   String output = "$POTENTSCALEDTODEPTH," + String(value) + "," + String(mDepth) + ",";
   Serial.println(output);
@@ -40,12 +40,12 @@ void AudioEffectGesture::updateAccelerometer(float value) {
   value = value < accel_min ? accel_min : value;
   value = value > accel_max ? accel_max : value;
   
-  int min = 1;
-  int max = 20;
+  int min = MIN_RATE;
+  int max = MAX_RATE;
 
   mRate = min + map(value, accel_min, accel_max, 0, max - min);
 
-  int possibleCurrentDelayStepSize = map(value, accel_min, accel_max, 100, MAX_DELAY_STEP_SIZE);
+  int possibleCurrentDelayStepSize = map(value, accel_min, accel_max, 100, DELAY_LENGTH / mCurrentNumberDelayRepeats); // MAX_DELAY_STEP_SIZE);
 
   if (abs(possibleCurrentDelayStepSize - mCurrentDelayStepSize) > 4000) {
     mCurrentDelayStepSize = possibleCurrentDelayStepSize;

@@ -3,8 +3,12 @@
 
 #define DELAY_LENGTH 44100
 
-#define MAX_NUMBER_DELAY_REPEATS 5  // Needs to be 2 or greater
+#define MAX_NUMBER_DELAY_REPEATS 10  // Needs to be 2 or greater
+#define MIN_NUMER_DELAY_REPEATS 2
 #define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / MAX_NUMBER_DELAY_REPEATS)
+
+#define MAX_RATE 15
+#define MIN_RATE 1
 
 class AudioEffectGesture : public AudioStream {
 public:
