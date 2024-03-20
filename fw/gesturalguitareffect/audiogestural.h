@@ -3,7 +3,8 @@
 
 #define DELAY_LENGTH 44100
 
-#define MAX_NUMBER_DELAY_REPEATS 10  // Needs to be 2 or greater
+#define MAX_NUMBER_DELAY_REPEATS 5  // Needs to be 2 or greater
+#define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / MAX_NUMBER_DELAY_REPEATS)
 
 class AudioEffectGesture : public AudioStream {
 public:
@@ -48,14 +49,12 @@ private:
 
   void updateDelayBuffer(audio_block_t *block);
 
-  void updateNumberDelayRepeats(int new_num);
-
   GuitarEffect mCurrentEffect;
   audio_block_t *inputQueueArray[1];
   int16_t mDelayBuffer[DELAY_LENGTH];
   uint32_t mWriteIndex;
   int mCurrentNumberDelayRepeats;
-  int mCurrentDelayLength;
+  int mCurrentDelayStepSize;
   float mDelayRatios[MAX_NUMBER_DELAY_REPEATS];
   float mDepth; 
   float mRate;
