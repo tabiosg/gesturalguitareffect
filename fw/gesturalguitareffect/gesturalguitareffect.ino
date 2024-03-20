@@ -66,6 +66,8 @@ void loop() {
   // gAudioEffectGesture.printEffect();
   gAudioEffectGesture.updatePotentiometer(gPotentiometer.getConvertedData()); 
   gAudioEffectGesture.updateAccelerometer(gAccel.getZDegrees());
+  // gAudioEffectGesture.updatePotentiometer(0); 
+  // gAudioEffectGesture.updateAccelerometer(0);
   delay(100); // Delay before next iteration
 }
 
