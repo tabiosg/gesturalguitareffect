@@ -1,50 +1,5 @@
 #include "audiogestural.h"
 
-void AudioEffectGesture::peakingCoefficients(float G, float fc, float Q, float fs) {
-    float K = tan(M_PI * fc / fs);
-    float V0 = pow(10, G / 20);
-    float b0 = (1 + ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
-    float b1 = (2 * (pow(K, 2) - 1)) / (1 + ((1 / Q) * K) + pow(K, 2));
-    float b2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
-    float a1 = b1;
-    float a2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
-
-    // Assign the coefficients to the provided arrays
-    b[0] = b0;
-    b[1] = b1;
-    b[2] = b2;
-    a[0] = 1.0f;
-    a[1] = a1;
-    a[2] = a2;
-}
-
-void AudioEffectGesture::applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
-    static float32_t x1 = 0, x2 = 0; // Delay elements
-    static float32_t y1 = 0, y2 = 0; // Delay elements
-    
-    float32_t b0 = b[0]; // Coefficients
-    float32_t b1 = b[1];
-    float32_t b2 = b[2];
-    float32_t a0 = a[0];
-    float32_t a1 = a[1];
-    float32_t a2 = a[2];
-
-    for (uint32_t i = 0; i < blockSize; i++) {
-        // Calculate output using difference equation
-        float32_t y0 = (b0 / a0) * input[i] + (b1 / a0) * x1 + (b2 / a0) * x2 - (a1 / a0) * y1 - (a2 / a0) * y2;
-        
-        // Update delay elements
-        x2 = x1;
-        x1 = input[i];
-        y2 = y1;
-        y1 = y0;
-        
-        // Store filtered output
-        output[i] = y0;
-    }
-}
-
-
 AudioEffectGesture::AudioEffectGesture()
   : AudioStream(1, inputQueueArray) {
   mCurrentEffect = GuitarEffect::None;
@@ -195,52 +150,6 @@ void AudioEffectGesture::update(void) {
       }
       // Release the input data block
       release(block);
-    }
-  }
-}
-
-void AudioEffectGesture::applyDelay(audio_block_t *block) {
-  for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    int16_t input = block->data[i];
-
-    block->data[i] = input * mDelayRatios[0];
-    int currentIndex = mWriteIndex - mCurrentDelayStepSize;
-    for (int j = 1; j < mCurrentNumberDelayRepeats; ++j) {
-      while (currentIndex < 0) {
-        currentIndex += DELAY_LENGTH;
-      }
-      block->data[i] += mDelayBuffer[currentIndex] * mDelayRatios[j];
-      currentIndex -= mCurrentDelayStepSize;
-    }
-    mDelayBuffer[mWriteIndex] = input;
-    if (mWriteIndex == (DELAY_LENGTH - 1)) {
-      mWriteIndex = 0;
-    }
-    else {
-      mWriteIndex += 1;
-    }
-  }
-  // Output the delayed audio
-  transmit(block);
-}
-
-void AudioEffectGesture::updateTremolo(audio_block_t *block) {
-  for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    float sincalc = sin(0.00014240362 * mWriteIndex * mRate); // sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
-    float factor = (1.0 - mDepth) + mDepth * sincalc;
-    block->data[i] *= factor;
-  }
-}
-
-void AudioEffectGesture::updateDelayBuffer(audio_block_t *block) {
-  for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    int16_t input = block->data[i];
-    mDelayBuffer[mWriteIndex] = input;
-    if (mWriteIndex == (DELAY_LENGTH - 1)) {
-      mWriteIndex = 0;
-    }
-    else {
-      mWriteIndex += 1;
     }
   }
 }
