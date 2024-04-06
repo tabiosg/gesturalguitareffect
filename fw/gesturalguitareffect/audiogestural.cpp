@@ -25,9 +25,16 @@ void applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
     static float32_t x1 = 0, x2 = 0; // Delay elements
     static float32_t y1 = 0, y2 = 0; // Delay elements
     
+    float32_t b0 = b[0]; // Coefficients
+    float32_t b1 = b[1];
+    float32_t b2 = b[2];
+    float32_t a0 = a[0];
+    float32_t a1 = a[1];
+    float32_t a2 = a[2];
+
     for (uint32_t i = 0; i < blockSize; i++) {
         // Calculate output using difference equation
-        float32_t y0 = b[0] * input[i] + b[1] * x1 + b[2] * x2 - a[1] * y1 - a[2] * y2;
+        float32_t y0 = (b0 / a0) * input[i] + (b1 / a0) * x1 + (b2 / a0) * x2 - (a1 / a0) * y1 - (a2 / a0) * y2;
         
         // Update delay elements
         x2 = x1;
@@ -39,6 +46,7 @@ void applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
         output[i] = y0;
     }
 }
+
 
 AudioEffectGesture::AudioEffectGesture()
   : AudioStream(1, inputQueueArray) {
@@ -74,6 +82,8 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   Serial.println(output);
   // Delay effect
   #endif
+
+  peakingCoefficients(30.0, 1000 + 20000 * value, 1.9, 44100.0f);
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
@@ -172,7 +182,7 @@ void AudioEffectGesture::update(void) {
         
         // Copy filtered data back to audio block
         for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-            block->data[i] = (int16_t)(output[i] * 32768.0f); // Convert back to 16-bit PCM
+            b_new->data[i] = (int16_t)(output[i] * 32768.0f); // Convert back to 16-bit PCM
         }
 
         transmit(b_new);
