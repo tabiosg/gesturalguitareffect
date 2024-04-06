@@ -67,8 +67,7 @@ private:
   float mDepth; 
   float mRate;
 
-  short coeff_p[100];
   // ARM DSP Math library filter instance
-  arm_fir_instance_q15 fir_inst;
-  q15_t StateQ15[AUDIO_BLOCK_SAMPLES + FIR_MAX_COEFFS];
+  arm_biquad_cascade_df2T_instance_f32 iir_inst;
+  float StateF32[1 * 4];
 };

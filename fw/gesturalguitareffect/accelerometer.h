@@ -79,8 +79,10 @@ private:
         Gs = Gs > 1.0 ? 1.0 : Gs;
         Gs = Gs < -1.0 ? -1.0 : Gs;
         float degrees = asin(Gs) * 180.0 / M_PI;
+        #ifdef DEBUG
         String output = "$ACCELRAWTOSCALED," + String(raw) + "," + String(degrees) + ",";
         Serial.println(output);
+        #endif
         return degrees;
     }
 };

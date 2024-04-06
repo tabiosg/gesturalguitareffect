@@ -1,5 +1,45 @@
 #include "audiogestural.h"
 
+float32_t a[3];
+float32_t b[3];
+
+void peakingCoefficients(float G, float fc, float Q, float fs) {
+    float K = tan(M_PI * fc / fs);
+    float V0 = pow(10, G / 20);
+    float b0 = (1 + ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
+    float b1 = (2 * (pow(K, 2) - 1)) / (1 + ((1 / Q) * K) + pow(K, 2));
+    float b2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
+    float a1 = b1;
+    float a2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
+
+    // Assign the coefficients to the provided arrays
+    b[0] = b0;
+    b[1] = b1;
+    b[2] = b2;
+    a[0] = 1.0f;
+    a[1] = a1;
+    a[2] = a2;
+}
+
+void applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
+    static float32_t x1 = 0, x2 = 0; // Delay elements
+    static float32_t y1 = 0, y2 = 0; // Delay elements
+    
+    for (uint32_t i = 0; i < blockSize; i++) {
+        // Calculate output using difference equation
+        float32_t y0 = b[0] * input[i] + b[1] * x1 + b[2] * x2 - a[1] * y1 - a[2] * y2;
+        
+        // Update delay elements
+        x2 = x1;
+        x1 = input[i];
+        y2 = y1;
+        y1 = y0;
+        
+        // Store filtered output
+        output[i] = y0;
+    }
+}
+
 AudioEffectGesture::AudioEffectGesture()
   : AudioStream(1, inputQueueArray) {
   mCurrentEffect = GuitarEffect::None;
@@ -17,31 +57,7 @@ AudioEffectGesture::AudioEffectGesture()
   mCurrentNumberDelayRepeats = MAX_NUMBER_DELAY_REPEATS;
   mCurrentDelayStepSize = MAX_DELAY_STEP_SIZE;
 
-  int16_t cp[100] = {
-          4,     -1,     -2,     -4,     -7,    -11,    -15,    -19,    -22,
-        -24,    -24,    -21,    -14,     -4,     10,     27,     47,     68,
-        88,    105,    117,    122,    116,     98,     67,     22,    -35,
-      -101,   -174,   -248,   -317,   -373,   -411,   -421,   -399,   -337,
-      -232,    -84,    109,    341,    608,    900,   1207,   1516,   1815,
-      2089,   2326,   2515,   2646,   2714,   2714,   2646,   2515,   2326,
-      2089,   1815,   1516,   1207,    900,    608,    341,    109,    -84,
-      -232,   -337,   -399,   -421,   -411,   -373,   -317,   -248,   -174,
-      -101,    -35,     22,     67,     98,    116,    122,    117,    105,
-        88,     68,     47,     27,     10,     -4,    -14,    -21,    -24,
-        -24,    -22,    -19,    -15,    -11,     -7,     -4,     -2,     -1,
-          4
-  };
-  memcpy(coeff_p, cp, 100 * sizeof(int16_t));
-  int n_coeffs = 100;  // set for low pass filter
-  if (coeff_p && (coeff_p != FIR_PASSTHRU) && n_coeffs <= FIR_MAX_COEFFS)
-  {
-    if (arm_fir_init_q15(&fir_inst, n_coeffs, (q15_t *)coeff_p,
-        &StateQ15[0], AUDIO_BLOCK_SAMPLES) != ARM_MATH_SUCCESS) {
-      // n_coeffs must be an even number, 4 or larger
-      // coeff_p = NULL;
-      Serial.println("Error!");
-    }
-  }
+  peakingCoefficients(6.0, 1000, 1.5, 44100.0f);
 }
 
 void AudioEffectGesture::updatePotentiometer(float value) {
@@ -143,9 +159,23 @@ void AudioEffectGesture::update(void) {
 
       b_new = allocate();
       if (b_new) {
-        arm_fir_fast_q15(&fir_inst, (q15_t *)block->data,
-          (q15_t *)b_new->data, AUDIO_BLOCK_SAMPLES);
-        transmit(b_new); // send the FIR output
+        float32_t input[AUDIO_BLOCK_SAMPLES];
+        float32_t output[AUDIO_BLOCK_SAMPLES];
+        
+        // Copy audio block data to input buffer
+        for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            input[i] = (float32_t)block->data[i] / 32768.0f; // Assuming 16-bit signed PCM audio
+        }
+        
+        // Apply biquad filter
+        applyBiquad(input, output, AUDIO_BLOCK_SAMPLES);
+        
+        // Copy filtered data back to audio block
+        for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            block->data[i] = (int16_t)(output[i] * 32768.0f); // Convert back to 16-bit PCM
+        }
+
+        transmit(b_new);
         release(b_new);
       }
       // Release the input data block
