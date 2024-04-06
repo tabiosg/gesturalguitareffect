@@ -65,7 +65,9 @@ AudioEffectGesture::AudioEffectGesture()
   mCurrentNumberDelayRepeats = MAX_NUMBER_DELAY_REPEATS;
   mCurrentDelayStepSize = MAX_DELAY_STEP_SIZE;
 
-  peakingCoefficients(6.0, 1000, 1.5, 44100.0f);
+  mCurrentGain = 20.0f;
+  mCurrentCenterFrequency = 1000;
+  peakingCoefficients(mCurrentGain, mCurrentCenterFrequency, 1.9, 44100.0f);
 }
 
 void AudioEffectGesture::updatePotentiometer(float value) {
@@ -83,7 +85,8 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Delay effect
   #endif
 
-  peakingCoefficients(30.0, 1000 + 20000 * value, 1.9, 44100.0f);
+  mCurrentGain = map(value * 10, 0, 10, 6, 30);
+  peakingCoefficients(mCurrentGain, mCurrentCenterFrequency, 1.9, 44100.0f);
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
@@ -98,13 +101,18 @@ void AudioEffectGesture::updateAccelerometer(float value) {
   int min = MIN_RATE;
   int max = MAX_RATE;
 
-  mRate = min + map(value, accel_min, accel_max, 0, max - min);
+  mRate = map(value, accel_min, accel_max, min, max);
 
   int possibleCurrentDelayStepSize = map(value, accel_min, accel_max, 100, DELAY_LENGTH / (mCurrentNumberDelayRepeats - 1)); // MAX_DELAY_STEP_SIZE);
   if (abs(prev_value_used_for_step_size - value) > 10) {
     mCurrentDelayStepSize = possibleCurrentDelayStepSize;
     prev_value_used_for_step_size = value;
   }
+
+  int minCenterFrequency = 100;
+  int maxCenterFrequency = 20000;
+  mCurrentCenterFrequency = map(value, accel_min, accel_max, minCenterFrequency, maxCenterFrequency);
+  peakingCoefficients(mCurrentGain, mCurrentCenterFrequency, 1.9, 44100.0f);
 
   #ifdef DEBUG
   String output = "$ACCELSCALEDTORATE," + String(orig_value) + "," + String(mRate) + ",";

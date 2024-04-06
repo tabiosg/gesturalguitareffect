@@ -67,7 +67,6 @@ private:
   float mDepth; 
   float mRate;
 
-  // ARM DSP Math library filter instance
-  arm_biquad_cascade_df2T_instance_f32 iir_inst;
-  float StateF32[1 * 4];
+  float mCurrentCenterFrequency;
+  float mCurrentGain; 
 };
