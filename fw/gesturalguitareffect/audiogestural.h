@@ -66,4 +66,9 @@ private:
   float mDelayRatios[MAX_NUMBER_DELAY_REPEATS];
   float mDepth; 
   float mRate;
+
+  short coeff_p[100];
+  // ARM DSP Math library filter instance
+  arm_fir_instance_q15 fir_inst;
+  q15_t StateQ15[AUDIO_BLOCK_SAMPLES + FIR_MAX_COEFFS];
 };
