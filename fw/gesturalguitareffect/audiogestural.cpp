@@ -1,9 +1,6 @@
 #include "audiogestural.h"
 
-float32_t a[3];
-float32_t b[3];
-
-void peakingCoefficients(float G, float fc, float Q, float fs) {
+void AudioEffectGesture::peakingCoefficients(float G, float fc, float Q, float fs) {
     float K = tan(M_PI * fc / fs);
     float V0 = pow(10, G / 20);
     float b0 = (1 + ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2));
@@ -21,7 +18,7 @@ void peakingCoefficients(float G, float fc, float Q, float fs) {
     a[2] = a2;
 }
 
-void applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
+void AudioEffectGesture::applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
     static float32_t x1 = 0, x2 = 0; // Delay elements
     static float32_t y1 = 0, y2 = 0; // Delay elements
     

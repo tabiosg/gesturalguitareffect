@@ -57,6 +57,10 @@ private:
 
   void updateDelayBuffer(audio_block_t *block);
 
+  void peakingCoefficients(float G, float fc, float Q, float fs);
+
+  void applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize);
+
   GuitarEffect mCurrentEffect;
   audio_block_t *inputQueueArray[1];
   int16_t mDelayBuffer[DELAY_LENGTH];
@@ -69,4 +73,7 @@ private:
 
   float mCurrentCenterFrequency;
   float mCurrentGain; 
+
+  float32_t a[3];
+  float32_t b[3];
 };
