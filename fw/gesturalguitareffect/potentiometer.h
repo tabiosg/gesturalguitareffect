@@ -1,4 +1,4 @@
-#define POT_PIN A14
+#define POT_PIN A14  // TODO - this needs to change
 
 // A14 is Pin 38
 

@@ -42,6 +42,10 @@ void AudioEffectGesture::updatePotentiometer(float value) {
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
+  #ifdef DEBUG
+  float orig_value = value;
+  #endif
+
   static float prev_value_used_for_step_size = 420; 
 
   // Expecting between -90 and 90. But it's more like -50 and 50
@@ -117,7 +121,7 @@ void AudioEffectGesture::update(void) {
       // Release the input data block
       release(block);
     }
-  } else if (mCurrentEffect == GuitarEffect::Fuzz) {
+  } else if (mCurrentEffect == GuitarEffect::Wah) {
     audio_block_t *block;
     // Check if input data is available
     block = receiveReadOnly(0);

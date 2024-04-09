@@ -21,10 +21,10 @@ AudioControlSGTL5000     codec;        // Audio codec control
 // Wire: SDA is 18, SCL is 19  - https://www.pjrc.com/teensy/td_libs_Wire.html
 // Wire2: SDA is 25, SCL is 24  - https://www.pjrc.com/teensy/td_libs_Wire.html
 
-#define NONE_PIN 29
-#define TREMOLO_PIN 30
-#define DELAY_PIN 31
-#define FUZZ_PIN 32
+#define NONE_PIN 34 
+#define TREMOLO_PIN 33
+#define DELAY_PIN 35
+#define WAH_PIN 31
 
 AudioEffectGesture gAudioEffectGesture;
 Accelerometer gAccel;
@@ -50,12 +50,12 @@ void setup() {
   pinMode(NONE_PIN, INPUT_PULLUP);
   pinMode(TREMOLO_PIN, INPUT_PULLUP);
   pinMode(DELAY_PIN, INPUT_PULLUP);
-  pinMode(FUZZ_PIN, INPUT_PULLUP);
+  pinMode(WAH_PIN, INPUT_PULLUP);
 
   attachInterrupt(digitalPinToInterrupt(NONE_PIN), doNoneEffect, RISING);
   attachInterrupt(digitalPinToInterrupt(TREMOLO_PIN), doTremoloEffect, RISING);
   attachInterrupt(digitalPinToInterrupt(DELAY_PIN), doDelayEffect, RISING);
-  attachInterrupt(digitalPinToInterrupt(FUZZ_PIN), doFuzzEffect, RISING);
+  attachInterrupt(digitalPinToInterrupt(WAH_PIN), doWahEffect, RISING);
 
   gAccel.setup();
 }
@@ -63,7 +63,9 @@ void setup() {
 void loop() {
   // Serial.println(gPotentiometer.getConvertedData());
   // codec.volume(gPotentiometer.getConvertedData());
-  // gAudioEffectGesture.printEffect();
+  #ifdef DEBUG
+  gAudioEffectGesture.printEffect();
+  #endif
   gAudioEffectGesture.updatePotentiometer(gPotentiometer.getConvertedData()); 
   gAudioEffectGesture.updateAccelerometer(gAccel.getZDegrees());
   // gAudioEffectGesture.updatePotentiometer(0); 
@@ -83,6 +85,6 @@ void doDelayEffect() {
   gAudioEffectGesture.changeEffect(GuitarEffect::Delay);
 }
 
-void doFuzzEffect() {
-  gAudioEffectGesture.changeEffect(GuitarEffect::Fuzz);
+void doWahEffect() {
+  gAudioEffectGesture.changeEffect(GuitarEffect::Wah);
 }
