@@ -32,8 +32,8 @@ Potentiometer gPotentiometer;
 
 // Define audio connections using AudioConnection
 AudioConnection          patchCord1(input, 0, gAudioEffectGesture, 0);
-AudioConnection          patchCord2(gAudioEffectGesture, 0, output, 0);
-AudioConnection          patchCord3(input, 1, gAudioEffectGesture, 0);
+
+AudioConnection          patchCord3(gAudioEffectGesture, 0, output, 0);
 AudioConnection          patchCord4(gAudioEffectGesture, 0, output, 1);
 
 void setup() {
@@ -66,10 +66,11 @@ void loop() {
   #ifdef DEBUG
   gAudioEffectGesture.printEffect();
   #endif
-  gAudioEffectGesture.updatePotentiometer(gPotentiometer.getConvertedData()); 
-  gAudioEffectGesture.updateAccelerometer(gAccel.getZDegrees());
-  // gAudioEffectGesture.updatePotentiometer(0); 
-  // gAudioEffectGesture.updateAccelerometer(0);
+  float potentData = gPotentiometer.getConvertedData();
+  gAudioEffectGesture.updatePotentiometer(potentData); 
+  float accelData = gAccel.getZDegrees();
+  gAudioEffectGesture.updateAccelerometer(accelData);
+  gAudioEffectGesture.applyPeakingCoefficients();
   delay(100); // Delay before next iteration
 }
 

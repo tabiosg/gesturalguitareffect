@@ -37,8 +37,7 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Delay effect
   #endif
 
-  mCurrentGain = map(value * 10, 0, 10, -30, 30);
-  peakingCoefficients(mCurrentGain, mCurrentCenterFrequency, 1.9, 44100.0f);
+  mCurrentGain = map(value * 10, 0, 10, -20, 20);
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
@@ -68,7 +67,6 @@ void AudioEffectGesture::updateAccelerometer(float value) {
   int minCenterFrequency = 500;
   int maxCenterFrequency = 5000;
   mCurrentCenterFrequency = map(value, accel_min, accel_max, minCenterFrequency, maxCenterFrequency);
-  peakingCoefficients(mCurrentGain, mCurrentCenterFrequency, 1.9, 44100.0f);
 
   #ifdef DEBUG
   String output = "$ACCELSCALEDTORATE," + String(orig_value) + "," + String(mRate) + ",";

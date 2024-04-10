@@ -25,6 +25,8 @@ public:
 
   void updateAccelerometer(float value);
 
+  void applyPeakingCoefficients();
+
   GuitarEffect getEffect() {
     return mCurrentEffect;
   }

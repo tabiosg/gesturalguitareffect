@@ -10,6 +10,7 @@
 #define CTRL1_A 0x20
 
 #define OUT_X_L 0x28
+#define OUT_Y_L 0x2A
 #define OUT_Z_L 0x2C
 
 class Accelerometer {
@@ -58,7 +59,7 @@ public:
     float getZDegrees() {
       // Writing to the device
         Wire2.beginTransmission(SAD_W_A); // Begin transmission to device
-        Wire2.write(OUT_Z_L | 0x80); // Suboperation code to write
+        Wire2.write(OUT_X_L | 0x80); // Suboperation code to write
         Wire2.endTransmission(); // End transmission
     
         // Reading from the device

@@ -31,6 +31,10 @@ void AudioEffectGesture::peakingCoefficients(float G, float fc, float Q, float f
     __enable_irq();
 }
 
+void AudioEffectGesture::applyPeakingCoefficients() {
+  peakingCoefficients(mCurrentGain, mCurrentCenterFrequency, 1.0f, 44100.0f);
+}
+
 void AudioEffectGesture::applyBiquad(float32_t *input, float32_t *output, uint32_t blockSize) {
     static float32_t x1 = 0, x2 = 0; // Delay elements
     static float32_t y1 = 0, y2 = 0; // Delay elements
@@ -55,6 +59,6 @@ void AudioEffectGesture::applyBiquad(float32_t *input, float32_t *output, uint32
         y1 = y0;
         
         // Store filtered output
-        output[i] = y0;
+        output[i] = y0;  // Multiply by 0.8 to prevent going too high
     }
 }
