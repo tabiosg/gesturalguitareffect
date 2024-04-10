@@ -7,7 +7,7 @@
 #define MIN_NUMER_DELAY_REPEATS 2
 #define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / MAX_NUMBER_DELAY_REPEATS)
 
-#define DEBUG
+// #define DEBUG
 
 #define MAX_RATE 15
 #define MIN_RATE 1

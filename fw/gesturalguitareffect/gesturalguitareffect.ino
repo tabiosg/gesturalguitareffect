@@ -61,8 +61,6 @@ void setup() {
 }
 
 void loop() {
-  // Serial.println(gPotentiometer.getConvertedData());
-  // codec.volume(gPotentiometer.getConvertedData());
   #ifdef DEBUG
   gAudioEffectGesture.printEffect();
   #endif
