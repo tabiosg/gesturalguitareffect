@@ -12,8 +12,17 @@ SAMPLE_RATE = 44100
 FORMAT = pyaudio.paInt16
 CHANNELS = 2
 
+MAX_NUMBER_DELAY_REPEATS = 10
+MIN_NUMBER_DELAY_REPEATS = 2
+#define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / MAX_NUMBER_DELAY_REPEATS)
+
+mCurrentNumberDelayRepeats = 10
+mCurrentDelayStepSize = 100
+
 mRate = 1
 mDepth = 0.3
+mDelayRatios = [pow(0.65, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
+
 # Function to update delay buffer
 def update_delay_buffer(block):
     global mWriteIndex
@@ -25,6 +34,23 @@ def update_delay_buffer(block):
         else:
             mWriteIndex += 1
         
+def apply_delay(block):
+    global mWriteIndex
+
+    for i in range(CHUNK_SIZE):
+        input = block[i]
+        block[i] = input * mDelayRatios[0]
+        currentIndex = mWriteIndex - mCurrentDelayStepSize
+        for j in range(1, mCurrentNumberDelayRepeats):
+            while currentIndex < 0:
+                currentIndex += SAMPLE_RATE
+            block[i] += mDelayBuffer[currentIndex] * mDelayRatios[j]
+            currentIndex -= mCurrentDelayStepSize
+            mDelayBuffer[mWriteIndex] = input
+            if mWriteIndex == (SAMPLE_RATE - 1):
+                mWriteIndex = 0
+            else:
+                mWriteIndex += 1
 
 # Function to update tremolo effect
 def update_tremolo(block, initialWriteIndex):
@@ -73,7 +99,8 @@ elif user_input == "tremolo":
     mRate = float(input("For rate, enter a float between 1 and 15: "))
     mDepth = float(input("For depth, enter a float between 0 and 0.5: "))
 elif user_input == "delay":
-    pass
+    mCurrentNumberDelayRepeats = int(input("For num repeats, enter an integer between 2 and 10: "))
+    mCurrentDelayStepSize = int(input("For step size, enter a integer between 100 and " + str(int(SAMPLE_RATE / 10.0)) +": "))
 elif user_input == "wah":
     pass
 else:
@@ -93,7 +120,7 @@ try:
             update_delay_buffer(chunk)
             update_tremolo(chunk, initialWriteIndex)
         elif user_input == "delay":
-            pass
+            apply_delay(chunk)
         elif user_input == "wah":
             pass
         
