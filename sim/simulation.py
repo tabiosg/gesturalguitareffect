@@ -14,7 +14,6 @@ CHANNELS = 2
 
 MAX_NUMBER_DELAY_REPEATS = 10
 MIN_NUMBER_DELAY_REPEATS = 2
-#define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / MAX_NUMBER_DELAY_REPEATS)
 
 mCurrentNumberDelayRepeats = 10
 mCurrentDelayStepSize = 100
@@ -22,6 +21,17 @@ mCurrentDelayStepSize = 100
 mRate = 1
 mDepth = 0.3
 mDelayRatios = [pow(0.65, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
+
+a1 = 0
+a2 = 0
+b0 = 0
+b1 = 0
+b2 = 0
+
+x1 = 0
+x2 = 0
+y1 = 0
+y2 = 0
 
 # Function to update delay buffer
 def update_delay_buffer(block):
@@ -51,6 +61,37 @@ def apply_delay(block):
                 mWriteIndex = 0
             else:
                 mWriteIndex += 1
+
+def peaking_coefficients(G, fc, Q, fs):
+    global b0, b1, b2, a1, a2
+
+    K = math.tan(math.pi * fc / fs)
+    V0 = pow(10, G / 20)
+    
+    if G >= 0:
+        b0 = (1 + ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
+        b1 = (2 * (pow(K, 2) - 1)) / (1 + ((1 / Q) * K) + pow(K, 2))
+        b2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
+        a1 = b1
+        a2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
+    else:
+        b0 = (1 + ((1 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+        b1 = (2 * (pow(K, 2) - 1)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+        b2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+        a1 = b1
+        a2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+    
+
+def applyBiquad(input, output):
+    global x1, x2, y1, y2
+    for i in range(CHUNK_SIZE):
+        y0 = (b0) * input[i] + (b1) * x1 + (b2) * x2 - (a1) * y1 - (a2) * y2;
+        x2 = x1
+        x1 = input[i]
+        y2 = y1
+        y1 = y0
+        output[i] = y0
+    
 
 # Function to update tremolo effect
 def update_tremolo(block, initialWriteIndex):
@@ -100,9 +141,11 @@ elif user_input == "tremolo":
     mDepth = float(input("For depth, enter a float between 0 and 0.5: "))
 elif user_input == "delay":
     mCurrentNumberDelayRepeats = int(input("For num repeats, enter an integer between 2 and 10: "))
-    mCurrentDelayStepSize = int(input("For step size, enter a integer between 100 and " + str(int(SAMPLE_RATE / 10.0)) +": "))
+    mCurrentDelayStepSize = int(input("For step size, enter an integer between 100 and " + str(int(SAMPLE_RATE / 10.0)) +": "))
 elif user_input == "wah":
-    pass
+    mCurrentGain = float(input("For gain, enter a float between -30 and 30: "))
+    mCurrentCenterFrequency = float(input("For center frequency, enter a float between 500 and 5000: "))
+    peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
 else:
     print("Invalid input. Please type in None, Tremolo, Delay, or Effect.")
 
@@ -122,7 +165,15 @@ try:
         elif user_input == "delay":
             apply_delay(chunk)
         elif user_input == "wah":
-            pass
+            input = [0] * CHUNK_SIZE
+            output = [0] * CHUNK_SIZE
+            for i in range(CHUNK_SIZE):
+                input[i] = float(chunk[i]) / 32768.0
+
+            applyBiquad(input, output)
+
+            for i in range(CHUNK_SIZE):
+                chunk[i] = int(output[i] * 32768.0) * 0.5
         
         # Convert back to bytes
         output_data = chunk.astype(np.int16).tobytes()
