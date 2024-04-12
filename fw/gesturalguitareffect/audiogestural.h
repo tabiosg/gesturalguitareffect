@@ -76,6 +76,5 @@ private:
   float mCurrentCenterFrequency;
   float mCurrentGain; 
 
-  float32_t a[3];
-  float32_t b[3];
+  float32_t mb0, mb1, mb2, ma1, ma2;
 };
