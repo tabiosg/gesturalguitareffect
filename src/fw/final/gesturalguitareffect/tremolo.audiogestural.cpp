@@ -1,5 +1,6 @@
 #include "audiogestural.h"
 
+
 void AudioEffectGesture::updateTremolo(audio_block_t *block, int startingIndex) {
   int runningIndex = startingIndex;
   float mRateMultiplier = 0.00014240362 * mRate;
@@ -15,4 +16,12 @@ void AudioEffectGesture::updateTremolo(audio_block_t *block, int startingIndex) 
       runningIndex += 1;
     }
   }
+}
+
+float AudioEffectGesture::calculateDepth(float input) {
+  return map(input * RATE_RESOLUTION, -RATE_RESOLUTION, RATE_RESOLUTION, 0, 10) / 10 / 2.0;  // Needs to be between 0 and 0.5
+}
+
+float AudioEffectGesture::calculateRate(float input) {
+  return map(input * RATE_RESOLUTION, -RATE_RESOLUTION, RATE_RESOLUTION, MIN_RATE, MAX_RATE);
 }

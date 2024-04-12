@@ -37,3 +37,11 @@ void AudioEffectGesture::updateDelayBuffer(audio_block_t *block) {
     }
   }
 }
+
+int AudioEffectGesture::calculateRepeats(float input) {
+  return map(input * REPEATS_RESOLUTION, -REPEATS_RESOLUTION, REPEATS_RESOLUTION, MIN_NUMER_DELAY_REPEATS, MAX_NUMBER_DELAY_REPEATS);
+}
+
+int AudioEffectGesture::calculateStepSize(float input) {
+  return map(input * STEP_SIZE_RESOLUTION, -STEP_SIZE_RESOLUTION, STEP_SIZE_RESOLUTION, 100, DELAY_LENGTH / (mCurrentNumberDelayRepeats - 1));
+}

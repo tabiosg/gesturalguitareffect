@@ -60,3 +60,11 @@ void AudioEffectGesture::applyBiquad(float32_t *input, float32_t *output, uint32
         output[i] = y0;
     }
 }
+
+int AudioEffectGesture::calculateGain(float input) {
+  return map(input * GAIN_RESOLUTION, -GAIN_RESOLUTION, GAIN_RESOLUTION, -20, 20);
+}
+
+int AudioEffectGesture::calculateCenterFrequency(float input) {
+  return map(input * CENTER_FREQUENCY_RESOLUTION, -CENTER_FREQUENCY_RESOLUTION, CENTER_FREQUENCY_RESOLUTION, MIN_CENTER_FREQUENCY, MAX_CENTER_FREQUENCY);
+}

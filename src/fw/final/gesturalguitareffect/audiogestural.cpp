@@ -9,9 +9,9 @@ AudioEffectGesture::AudioEffectGesture()
   mDepth = 0.5;
   mRate = MAX_RATE;
 
-  mDelayRatios[0] = 0.65f;
+  mDelayRatios[0] = 0.45f;
   for (int i = 1; i < MAX_NUMBER_DELAY_REPEATS; ++i) {
-      mDelayRatios[i] = mDelayRatios[i - 1] * 0.65;
+      mDelayRatios[i] = mDelayRatios[i - 1] * 0.45;
   }
 
   mCurrentNumberDelayRepeats = MAX_NUMBER_DELAY_REPEATS;
@@ -24,10 +24,6 @@ AudioEffectGesture::AudioEffectGesture()
 
 void AudioEffectGesture::updatePotentiometer(float value) {
   // Expecting between 0.0 and 1.0
-  // Tremolo effect
-  mDepth = value / 2.0;  // map to 0 and 0.5
-
-  mCurrentNumberDelayRepeats = map(value * 10, 0, 10, MIN_NUMER_DELAY_REPEATS, MAX_NUMBER_DELAY_REPEATS);
 
   #ifdef DEBUG
   String output = "$POTENTSCALEDTODEPTH," + String(value) + "," + String(mDepth) + ",";
@@ -37,43 +33,73 @@ void AudioEffectGesture::updatePotentiometer(float value) {
   // Delay effect
   #endif
 
-  mCurrentGain = map(value * 10, 0, 10, -20, 20);
+  float input = value * 2 - 1.0;
+  
+  if (mCurrentEffect == GuitarEffect::Tremolo) {
+    mDepth = calculateDepth(input);  // map to 0 and 0.5
+  } else if (mCurrentEffect == GuitarEffect::Delay) {
+    mCurrentNumberDelayRepeats = calculateRepeats(input);
+  } else if (mCurrentEffect == GuitarEffect::Wah) {
+    mCurrentGain = calculateGain(input);
+  }
+
+}
+
+float AudioEffectGesture::convertAccelValueToInput(float value) {
+  static float last_angle = value;
+  static int calls_to_wait = 0;
+
+  float usable_angle = value;
+
+  usable_angle = usable_angle < -ACCEL_MAX_DEG_FOR_INPUT ? -ACCEL_MAX_DEG_FOR_INPUT : usable_angle;
+  usable_angle = usable_angle > ACCEL_MAX_DEG_FOR_INPUT ? ACCEL_MAX_DEG_FOR_INPUT : usable_angle;
+
+  bool should_use_last_angle = false;
+
+  if (calls_to_wait > 0) {
+    --calls_to_wait;
+    should_use_last_angle = false;
+  }
+  else if (usable_angle == -ACCEL_MAX_DEG_FOR_INPUT || usable_angle == ACCEL_MAX_DEG_FOR_INPUT) {
+    should_use_last_angle = false;
+  }
+  else if (abs(last_angle - usable_angle) < ACCEL_DEG_THRESHOLDING) {
+    should_use_last_angle = true;
+  }
+
+  if (should_use_last_angle) {
+    calls_to_wait = ACCEL_CALLS_TO_WAIT_BEFORE_UPDATING_AGAIN;
+    usable_angle = last_angle;
+  }
+  else {
+    last_angle = usable_angle;
+  }
+
+  float input = usable_angle / ACCEL_MAX_DEG_FOR_INPUT;
+  
+  return input;
 }
 
 void AudioEffectGesture::updateAccelerometer(float value) {
-  #ifdef DEBUG
-  float orig_value = value;
-  #endif
 
-  static float prev_value_used_for_step_size = 420; 
+  float input = convertAccelValueToInput(value);
 
-  // Expecting between -90 and 90. But it's more like -50 and 50
-  float accel_min = -50;
-  float accel_max = 50;
-  value = value < accel_min ? accel_min : value;
-  value = value > accel_max ? accel_max : value;
-  
-  int min = MIN_RATE;
-  int max = MAX_RATE;
+  Serial.println(input);
 
-  mRate = map(value, accel_min, accel_max, min, max);
-
-  int possibleCurrentDelayStepSize = map(value, accel_min, accel_max, 100, DELAY_LENGTH / (mCurrentNumberDelayRepeats - 1)); // MAX_DELAY_STEP_SIZE);
-  if (abs(prev_value_used_for_step_size - value) > 10) {
-    mCurrentDelayStepSize = possibleCurrentDelayStepSize;
-    prev_value_used_for_step_size = value;
+  if (mCurrentEffect == GuitarEffect::Tremolo) {
+    mRate = calculateRate(input);
+  } else if (mCurrentEffect == GuitarEffect::Delay) {
+    mCurrentDelayStepSize = calculateStepSize(input);
+  } else if (mCurrentEffect == GuitarEffect::Wah) {
+    mCurrentCenterFrequency = calculateCenterFrequency(input);
   }
 
-  int minCenterFrequency = 500;
-  int maxCenterFrequency = 5000;
-  mCurrentCenterFrequency = map(value, accel_min, accel_max, minCenterFrequency, maxCenterFrequency);
-
   #ifdef DEBUG
-  String output = "$ACCELSCALEDTORATE," + String(orig_value) + "," + String(mRate) + ",";
+  String output = "$ACCELSCALEDTORATE," + String(value) + "," + String(mRate) + ",";
   Serial.println(output);
-  output = "$ACCELSCALEDTOPOSSIBLEDELAY," + String(orig_value) + "," + String(possibleCurrentDelayStepSize) + ",";
+  output = "$ACCELSCALEDTOPOSSIBLEDELAY," + String(value) + "," + String(possibleCurrentDelayStepSize) + ",";
   Serial.println(output);
-  output = "$ACCELSCALEDTODELAYLENGTH," + String(orig_value) + "," + String(mCurrentDelayStepSize) + ",";
+  output = "$ACCELSCALEDTODELAYLENGTH," + String(value) + "," + String(mCurrentDelayStepSize) + ",";
   Serial.println(output);
   #endif
 }
@@ -146,7 +172,7 @@ void AudioEffectGesture::update(void) {
         
         // Copy filtered data back to audio block
         for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-            b_new->data[i] = (int16_t)(output[i] * 32768.0f * 0.5); // Convert back to 16-bit PCM
+            b_new->data[i] = (int16_t)(output[i] * 32768.0f * 0.25); // Convert back to 16-bit PCM
         }
 
         transmit(b_new);
