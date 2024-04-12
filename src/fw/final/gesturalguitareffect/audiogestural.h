@@ -55,7 +55,7 @@ public:
 private:
   void applyDelay(audio_block_t *block);
 
-  void updateTremolo(audio_block_t *block);
+  void updateTremolo(audio_block_t *block, int startingIndex);
 
   void updateDelayBuffer(audio_block_t *block);
 

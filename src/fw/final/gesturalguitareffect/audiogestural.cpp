@@ -101,9 +101,11 @@ void AudioEffectGesture::update(void) {
     block = receiveReadOnly(0);
     if (block != NULL) {
 
+      int startingIndex = mWriteIndex;
+
       updateDelayBuffer(block);  // used for Delay effect
 
-      updateTremolo(block);
+      updateTremolo(block, startingIndex);
       // Pass the input data to the output
       transmit(block);
       // Release the input data block
@@ -144,7 +146,7 @@ void AudioEffectGesture::update(void) {
         
         // Copy filtered data back to audio block
         for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-            b_new->data[i] = (int16_t)(output[i] * 32768.0f); // Convert back to 16-bit PCM
+            b_new->data[i] = (int16_t)(output[i] * 32768.0f * 0.5); // Convert back to 16-bit PCM
         }
 
         transmit(b_new);
