@@ -58,20 +58,20 @@ float AudioEffectGesture::convertAccelValueToInput(float value) {
 
   if (calls_to_wait > 0) {
     --calls_to_wait;
-    should_use_last_angle = false;
+    should_use_last_angle = true;
   }
   else if (usable_angle == -ACCEL_MAX_DEG_FOR_INPUT || usable_angle == ACCEL_MAX_DEG_FOR_INPUT) {
     should_use_last_angle = false;
   }
-  else if (abs(last_angle - usable_angle) < ACCEL_DEG_THRESHOLDING) {
+  else if (fabs(last_angle - usable_angle) < ACCEL_DEG_THRESHOLDING) {
     should_use_last_angle = true;
   }
 
   if (should_use_last_angle) {
-    calls_to_wait = ACCEL_CALLS_TO_WAIT_BEFORE_UPDATING_AGAIN;
     usable_angle = last_angle;
   }
   else {
+    calls_to_wait = ACCEL_CALLS_TO_WAIT_BEFORE_UPDATING_AGAIN;
     last_angle = usable_angle;
   }
 
@@ -83,8 +83,6 @@ float AudioEffectGesture::convertAccelValueToInput(float value) {
 void AudioEffectGesture::updateAccelerometer(float value) {
 
   float input = convertAccelValueToInput(value);
-
-  Serial.println(input);
 
   if (mCurrentEffect == GuitarEffect::Tremolo) {
     mRate = calculateRate(input);

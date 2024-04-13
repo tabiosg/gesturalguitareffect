@@ -21,7 +21,7 @@
 #define DEPTH_RESOLUTION 10
 
 #define ACCEL_MAX_DEG_FOR_INPUT 50 // Degrees since we noticed that anything above 50 degrees is not too accurate.
-#define ACCEL_DEG_THRESHOLDING 4
+#define ACCEL_DEG_THRESHOLDING 1
 
 #define ACCEL_CALLS_TO_WAIT_BEFORE_UPDATING_AGAIN 3
 

@@ -26,15 +26,19 @@ void AudioEffectGesture::applyDelay(audio_block_t *block) {
 }
 
 void AudioEffectGesture::updateDelayBuffer(audio_block_t *block) {
-  for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    int16_t input = block->data[i];
-    mDelayBuffer[mWriteIndex] = input;
-    if (mWriteIndex == (DELAY_LENGTH - 1)) {
-      mWriteIndex = 0;
-    }
-    else {
-      mWriteIndex += 1;
-    }
+  int numSamplesToEnd = DELAY_LENGTH - mWriteIndex;
+  int numSamplesToCopy = AUDIO_BLOCK_SAMPLES;
+  if (numSamplesToCopy > numSamplesToEnd)
+      numSamplesToCopy = numSamplesToEnd;
+
+  memcpy(&mDelayBuffer[mWriteIndex], block->data, numSamplesToCopy * sizeof(int16_t));
+  if (numSamplesToCopy < AUDIO_BLOCK_SAMPLES) {
+      memcpy(mDelayBuffer, &block->data[numSamplesToCopy], (AUDIO_BLOCK_SAMPLES - numSamplesToCopy) * sizeof(int16_t));
+  }
+
+  mWriteIndex += AUDIO_BLOCK_SAMPLES;
+  if (mWriteIndex >= DELAY_LENGTH) {
+      mWriteIndex -= DELAY_LENGTH;
   }
 }
 
