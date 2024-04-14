@@ -2,6 +2,7 @@ import pyaudio
 import numpy as np
 from pydub import AudioSegment, generators
 import math
+# import librosa
 
 mDelayBuffer = [0] * 44100
 mWriteIndex = 0
@@ -104,19 +105,19 @@ def update_tremolo(block, initialWriteIndex):
         else:
             initialWriteIndex += 1
 
-# Generate sine wave segments for each note in C major chord (C, E, G)
-c_note = generators.Sine(261.63).to_audio_segment(duration=1000)  # C note (261.63 Hz)
-e_note = generators.Sine(329.63).to_audio_segment(duration=1000)  # E note (329.63 Hz)
-g_note = generators.Sine(392.00).to_audio_segment(duration=1000)  # G note (392.00 Hz)
+# Load an MP3 file
+mp3_file = input("Please enter your [filename.mp3] file name: ")
+audio_segment = AudioSegment.from_file(mp3_file, format='mp3')
 
-# Create C major chord by overlaying the sine wave segments
-c_chord = c_note.overlay(e_note).overlay(g_note)
+if audio_segment.frame_rate != 44100:
+    audio_segment = audio_segment.set_frame_rate(44100)
 
-# Repeat the chord for a full minute
-full_minute_chord = c_chord * (60 * 1000 // len(c_chord))
+if audio_segment.channels > 1:
+    audio_segment = audio_segment.set_channels(1)
 
-# Convert to raw audio data
-audio_data = np.array(full_minute_chord.get_array_of_samples())
+audio_segment = audio_segment.set_sample_width(2) 
+
+audio_data = np.array(audio_segment.get_array_of_samples())
 
 # Initialize PyAudio
 p = pyaudio.PyAudio()
