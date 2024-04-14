@@ -6,6 +6,7 @@ from pydub import AudioSegment, generators
 import math
 import threading
 
+
 # Initialize PyAudio
 p = pyaudio.PyAudio()
 
@@ -119,12 +120,13 @@ def update_tremolo(block, initialWriteIndex):
         else:
             initialWriteIndex += 1
 
-def start_playback_thread():
-    playback_thread = threading.Thread(target=start_playback)
-    playback_thread.start()
+def resume_playing():
+    global stop_flag
+    stop_flag = False
 
 # Function to start audio playback
 def start_playback():
+    global stop_flag
     stop_flag = False
     global user_input
 
@@ -147,8 +149,8 @@ def start_playback():
     while True:
         for i in range(0, len(audio_data), CHUNK_SIZE):
 
-            if stop_flag:
-                break
+            while stop_flag:
+                pass
 
             # Extract chunk of audio data
             chunk = audio_data[i:i + CHUNK_SIZE]
@@ -180,17 +182,14 @@ def start_playback():
             # Play audio through speaker
             stream_out.write(output_data)
 
-        if stop_flag:
-            break
-
-    print("Playback stopped.")
-
-    # Close stream
     stream_out.stop_stream()
     stream_out.close()
 
+playback_thread = threading.Thread(target=start_playback)
+playback_thread.start()
+
 # Function to stop playback
-def stop_playback():
+def pause_playback():
     global stop_flag
     stop_flag = True
 
@@ -199,11 +198,11 @@ window = tk.Tk()
 window.title("Audio Effects Control")
 
 # Button to start playback
-start_button = ttk.Button(window, text="Start Playback", command=start_playback_thread)
+start_button = ttk.Button(window, text="Resume Playback", command=resume_playing)
 start_button.grid(row=1, column=0, padx=5, pady=5)
 
 # Button to stop playback
-stop_button = ttk.Button(window, text="Stop Playback", command=stop_playback)
+stop_button = ttk.Button(window, text="Pause Playback", command=pause_playback)
 stop_button.grid(row=1, column=1, padx=5, pady=5)
 
 # Function to update effect based on user selection
