@@ -4,9 +4,12 @@ import pyaudio
 import numpy as np
 from pydub import AudioSegment, generators
 import math
+import threading
 
 # Initialize PyAudio
 p = pyaudio.PyAudio()
+
+stop_flag = False
 
 mDelayBuffer = [0] * 44100
 mWriteIndex = 0
@@ -25,7 +28,7 @@ mCurrentDelayStepSize = 100
 
 mRate = 1
 mDepth = 0.3
-mDelayRatios = [pow(0.65, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
+mDelayRatios = [pow(0.45, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
 
 a1 = 0
 a2 = 0
@@ -111,8 +114,13 @@ def update_tremolo(block, initialWriteIndex):
         else:
             initialWriteIndex += 1
 
+def start_playback_thread():
+    playback_thread = threading.Thread(target=start_playback)
+    playback_thread.start()
+
 # Function to start audio playback
 def start_playback():
+    stop_flag = False
     global user_input
 
     mp3_file = "sunflower.mp3" #input("Please enter your [filename.mp3] file name: ")
@@ -133,6 +141,10 @@ def start_playback():
 
     while True:
         for i in range(0, len(audio_data), CHUNK_SIZE):
+
+            if stop_flag:
+                break
+
             # Extract chunk of audio data
             chunk = audio_data[i:i + CHUNK_SIZE]
 
@@ -191,16 +203,17 @@ effect_selection.current(0)  # Set the default selection to "None"
 effect_selection.grid(row=0, column=1, padx=5, pady=5)
 
 # Button to start playback
-start_button = ttk.Button(window, text="Start Playback", command=start_playback)
+start_button = ttk.Button(window, text="Start Playback", command=start_playback_thread)
 start_button.grid(row=1, column=0, padx=5, pady=5)
 
 # Button to stop playback
 stop_button = ttk.Button(window, text="Stop Playback", command=stop_playback)
 stop_button.grid(row=1, column=1, padx=5, pady=5)
 
+# Function to update effect based on user selection
 def update_effect():
     global user_input
-    user_input = effect_selection.get()
+    user_input = effect_selection.get().lower()
 
 # Button to update effect
 update_button = ttk.Button(window, text="Update Effect", command=update_effect)
@@ -208,11 +221,5 @@ update_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
 # Run the Tkinter event loop
 window.mainloop()
-
-
-# Function to update effect based on user selection
-def update_effect():
-    global user_input
-    user_input = effect_selection.get()
 
 # Function to update parameters based on user input
