@@ -92,7 +92,7 @@ def peaking_coefficients(G, fc, Q=1.0, fs=44100.0):
         a2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
     
 
-mCurrentGain = 20
+mCurrentGain = 10
 mCurrentCenterFrequency = -500
 
 peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
@@ -249,7 +249,7 @@ gain_label = ttk.Label(window, text="Wah: mCurrentGain:")
 gain_label.grid(row=7, column=0, padx=5, pady=5)
 
 # Slider to control mCurrentGain
-gain_slider = ttk.Scale(window, from_=-20, to=20, orient=tk.HORIZONTAL, length=200)
+gain_slider = ttk.Scale(window, from_=-12, to=0, orient=tk.HORIZONTAL, length=200)
 gain_slider.set(mCurrentGain)
 gain_slider.grid(row=7, column=1, padx=5, pady=5)
 
