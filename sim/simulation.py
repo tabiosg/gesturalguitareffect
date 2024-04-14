@@ -1,8 +1,12 @@
+import tkinter as tk
+from tkinter import ttk
 import pyaudio
 import numpy as np
 from pydub import AudioSegment, generators
 import math
-# import librosa
+
+# Initialize PyAudio
+p = pyaudio.PyAudio()
 
 mDelayBuffer = [0] * 44100
 mWriteIndex = 0
@@ -33,6 +37,8 @@ x1 = 0
 x2 = 0
 y1 = 0
 y2 = 0
+
+user_input = "none"
 
 # Function to update delay buffer
 def update_delay_buffer(block):
@@ -105,87 +111,108 @@ def update_tremolo(block, initialWriteIndex):
         else:
             initialWriteIndex += 1
 
-# Load an MP3 file
-mp3_file = input("Please enter your [filename.mp3] file name: ")
-audio_segment = AudioSegment.from_file(mp3_file, format='mp3')
+# Function to start audio playback
+def start_playback():
+    global user_input
 
-if audio_segment.frame_rate != 44100:
-    audio_segment = audio_segment.set_frame_rate(44100)
+    mp3_file = "sunflower.mp3" #input("Please enter your [filename.mp3] file name: ")
+    audio_segment = AudioSegment.from_file(mp3_file, format='mp3')
+    
+    audio_data = np.array(audio_segment.get_array_of_samples())
 
-if audio_segment.channels > 1:
-    audio_segment = audio_segment.set_channels(1)
+    # Open audio stream with speaker output
+    stream_out = p.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=SAMPLE_RATE,
+                        output=True,
+                        frames_per_buffer=CHUNK_SIZE,
+                        output_device_index=None,
+                        output_host_api_specific_stream_info=None)
 
-audio_segment = audio_segment.set_sample_width(2) 
+    print("Playing...")
 
-audio_data = np.array(audio_segment.get_array_of_samples())
+    while True:
+        for i in range(0, len(audio_data), CHUNK_SIZE):
+            # Extract chunk of audio data
+            chunk = audio_data[i:i + CHUNK_SIZE]
 
-# Initialize PyAudio
-p = pyaudio.PyAudio()
+            # Apply effects
+            initialWriteIndex = mWriteIndex
 
-# Open audio stream with speaker output
-stream_out = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=SAMPLE_RATE,
-                    output=True,
-                    frames_per_buffer=CHUNK_SIZE,
-                    output_device_index=None,
-                    output_host_api_specific_stream_info=None)
+            if user_input == "none":
+                pass
+            elif user_input == "tremolo":
+                update_delay_buffer(chunk)
+                update_tremolo(chunk, initialWriteIndex)
+            elif user_input == "delay":
+                apply_delay(chunk)
+            elif user_input == "wah":
+                input = [0] * CHUNK_SIZE
+                output = [0] * CHUNK_SIZE
+                for i in range(CHUNK_SIZE):
+                    input[i] = float(chunk[i]) / 32768.0
 
-print("Playing...")
+                applyBiquad(input, output)
 
-user_input = input("Type in None, Tremolo, Delay, or Wah: ").lower()
+                for i in range(CHUNK_SIZE):
+                    chunk[i] = int(output[i] * 32768.0) * 0.5
 
-if user_input == "none":
-    pass
-elif user_input == "tremolo":
-    mRate = float(input("For rate, enter a float between 1 and 15: "))
-    mDepth = float(input("For depth, enter a float between 0 and 0.5: "))
-elif user_input == "delay":
-    mCurrentNumberDelayRepeats = int(input("For num repeats, enter an integer between 2 and 10: "))
-    mCurrentDelayStepSize = int(input("For step size, enter an integer between 100 and " + str(int(SAMPLE_RATE / 10.0)) +": "))
-elif user_input == "wah":
-    mCurrentGain = float(input("For gain, enter a float between -30 and 30: "))
-    mCurrentCenterFrequency = float(input("For center frequency, enter a float between 500 and 5000: "))
-    peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
-else:
-    print("Invalid input. Please type in None, Tremolo, Delay, or Effect.")
+            # Convert back to bytes
+            output_data = chunk.astype(np.int16).tobytes()
 
-try:
-    for i in range(0, len(audio_data), CHUNK_SIZE):
-        # Extract chunk of audio data
-        chunk = audio_data[i:i + CHUNK_SIZE]
-        
-        # Apply effects
-        initialWriteIndex = mWriteIndex
+            # Play audio through speaker
+            stream_out.write(output_data)
 
-        if user_input == "none":
-            pass
-        elif user_input == "tremolo":
-            update_delay_buffer(chunk)
-            update_tremolo(chunk, initialWriteIndex)
-        elif user_input == "delay":
-            apply_delay(chunk)
-        elif user_input == "wah":
-            input = [0] * CHUNK_SIZE
-            output = [0] * CHUNK_SIZE
-            for i in range(CHUNK_SIZE):
-                input[i] = float(chunk[i]) / 32768.0
+        if stop_flag:
+            break
 
-            applyBiquad(input, output)
-
-            for i in range(CHUNK_SIZE):
-                chunk[i] = int(output[i] * 32768.0) * 0.5
-        
-        # Convert back to bytes
-        output_data = chunk.astype(np.int16).tobytes()
-        
-        # Play audio through speaker
-        stream_out.write(output_data)
-        
-except KeyboardInterrupt:
     print("Playback stopped.")
 
-# Close stream
-stream_out.stop_stream()
-stream_out.close()
-p.terminate()
+    # Close stream
+    stream_out.stop_stream()
+    stream_out.close()
+
+# Function to stop playback
+def stop_playback():
+    global stop_flag
+    stop_flag = True
+
+# Create a Tkinter window
+window = tk.Tk()
+window.title("Audio Effects Control")
+
+# Add a dropdown menu to select the effect
+effect_label = ttk.Label(window, text="Select Effect:")
+effect_label.grid(row=0, column=0, padx=5, pady=5)
+
+effects = ["None", "Tremolo", "Delay", "Wah"]
+effect_selection = ttk.Combobox(window, values=effects)
+effect_selection.current(0)  # Set the default selection to "None"
+effect_selection.grid(row=0, column=1, padx=5, pady=5)
+
+# Button to start playback
+start_button = ttk.Button(window, text="Start Playback", command=start_playback)
+start_button.grid(row=1, column=0, padx=5, pady=5)
+
+# Button to stop playback
+stop_button = ttk.Button(window, text="Stop Playback", command=stop_playback)
+stop_button.grid(row=1, column=1, padx=5, pady=5)
+
+def update_effect():
+    global user_input
+    user_input = effect_selection.get()
+
+# Button to update effect
+update_button = ttk.Button(window, text="Update Effect", command=update_effect)
+update_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+
+# Run the Tkinter event loop
+window.mainloop()
+
+
+# Function to update effect based on user selection
+def update_effect():
+    global user_input
+    user_input = effect_selection.get()
+
+# Function to update parameters based on user input
