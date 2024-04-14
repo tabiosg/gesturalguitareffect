@@ -198,15 +198,6 @@ def stop_playback():
 window = tk.Tk()
 window.title("Audio Effects Control")
 
-# Add a dropdown menu to select the effect
-effect_label = ttk.Label(window, text="Select Effect:")
-effect_label.grid(row=0, column=0, padx=5, pady=5)
-
-effects = ["None", "Tremolo", "Delay", "Wah"]
-effect_selection = ttk.Combobox(window, values=effects)
-effect_selection.current(0)  # Set the default selection to "None"
-effect_selection.grid(row=0, column=1, padx=5, pady=5)
-
 # Button to start playback
 start_button = ttk.Button(window, text="Start Playback", command=start_playback_thread)
 start_button.grid(row=1, column=0, padx=5, pady=5)
@@ -216,13 +207,121 @@ stop_button = ttk.Button(window, text="Stop Playback", command=stop_playback)
 stop_button.grid(row=1, column=1, padx=5, pady=5)
 
 # Function to update effect based on user selection
-def update_effect():
-    global user_input
-    user_input = effect_selection.get().lower()
 
-# Button to update effect
-update_button = ttk.Button(window, text="Update Effect", command=update_effect)
-update_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+# Label for mRate slider
+rate_label = ttk.Label(window, text="Tremolo: mRate:")
+rate_label.grid(row=3, column=0, padx=5, pady=5)
+
+# Slider to control mRate
+rate_slider = ttk.Scale(window, from_=1, to=15, orient=tk.HORIZONTAL, length=200)
+rate_slider.set(mRate)
+rate_slider.grid(row=3, column=1, padx=5, pady=5)
+
+# Label for mDepth slider
+depth_label = ttk.Label(window, text="Tremolo: mDepth:")
+depth_label.grid(row=4, column=0, padx=5, pady=5)
+
+# Slider to control mDepth
+depth_slider = ttk.Scale(window, from_=0, to=0.5, orient=tk.HORIZONTAL, length=200)
+depth_slider.set(mDepth)
+depth_slider.grid(row=4, column=1, padx=5, pady=5)
+
+# Label for mCurrentNumberDelayRepeats slider
+delay_repeats_label = ttk.Label(window, text="Delay: mCurrentNumberDelayRepeats:")
+delay_repeats_label.grid(row=5, column=0, padx=5, pady=5)
+
+# Slider to control mCurrentNumberDelayRepeats
+delay_repeats_slider = ttk.Scale(window, from_=2, to=10, orient=tk.HORIZONTAL, length=200)
+delay_repeats_slider.set(mCurrentNumberDelayRepeats)
+delay_repeats_slider.grid(row=5, column=1, padx=5, pady=5)
+
+# Label for mCurrentDelayStepSize slider
+delay_step_label = ttk.Label(window, text="Delay: mCurrentDelayStepSize:")
+delay_step_label.grid(row=6, column=0, padx=5, pady=5)
+
+# Slider to control mCurrentDelayStepSize
+delay_step_slider = ttk.Scale(window, from_=100, to=int(SAMPLE_RATE / 10.0), orient=tk.HORIZONTAL, length=200)
+delay_step_slider.set(mCurrentDelayStepSize)
+delay_step_slider.grid(row=6, column=1, padx=5, pady=5)
+
+# Label for mCurrentGain slider
+gain_label = ttk.Label(window, text="Wah: mCurrentGain:")
+gain_label.grid(row=7, column=0, padx=5, pady=5)
+
+# Slider to control mCurrentGain
+gain_slider = ttk.Scale(window, from_=-30, to=30, orient=tk.HORIZONTAL, length=200)
+gain_slider.set(mCurrentGain)
+gain_slider.grid(row=7, column=1, padx=5, pady=5)
+
+# Label for mCurrentCenterFrequency slider
+frequency_label = ttk.Label(window, text="Wah: mCurrentCenterFrequency:")
+frequency_label.grid(row=8, column=0, padx=5, pady=5)
+
+# Slider to control mCurrentCenterFrequency
+frequency_slider = ttk.Scale(window, from_=500, to=5000, orient=tk.HORIZONTAL, length=200)
+frequency_slider.set(mCurrentCenterFrequency)
+frequency_slider.grid(row=8, column=1, padx=5, pady=5)
+
+# Function to update mRate variable when its slider is moved
+def update_rate(value):
+    global mRate
+    mRate = int(value)
+
+# Function to update mDepth variable when its slider is moved
+def update_depth(value):
+    global mDepth
+    mDepth = float(value)
+
+# Function to update mCurrentGain variable when its slider is moved
+def update_gain(value):
+    global mCurrentGain
+    mCurrentGain = int(value)
+
+# Function to update mCurrentCenterFrequency variable when its slider is moved
+def update_frequency(value):
+    global mCurrentCenterFrequency
+    mCurrentCenterFrequency = int(value)
+
+# Function to update mCurrentNumberDelayRepeats variable when its slider is moved
+def update_delay_repeats(value):
+    global mCurrentNumberDelayRepeats
+    mCurrentNumberDelayRepeats = int(value)
+
+# Function to update mCurrentDelayStepSize variable when its slider is moved
+def update_delay_step(value):
+    global mCurrentDelayStepSize
+    mCurrentDelayStepSize = int(value)
+
+# Bind functions to slider events
+rate_slider.bind("<Motion>", lambda event: update_rate(rate_slider.get()))
+depth_slider.bind("<Motion>", lambda event: update_depth(depth_slider.get()))
+gain_slider.bind("<Motion>", lambda event: update_gain(gain_slider.get()))
+frequency_slider.bind("<Motion>", lambda event: update_frequency(frequency_slider.get()))
+delay_repeats_slider.bind("<Motion>", lambda event: update_delay_repeats(delay_repeats_slider.get()))
+delay_step_slider.bind("<Motion>", lambda event: update_delay_step(delay_step_slider.get()))
+
+# Function to handle effect button clicks
+def handle_effect(effect):
+    global user_input
+    user_input = effect
+    effect_label.config(text=f"Selected Effect: {user_input}")
+
+# Buttons for effect selection
+none_button = ttk.Button(window, text="None", command=lambda: handle_effect("none"))
+none_button.grid(row=9, column=0, padx=5, pady=5)
+
+tremolo_button = ttk.Button(window, text="Tremolo", command=lambda: handle_effect("tremolo"))
+tremolo_button.grid(row=9, column=1, padx=5, pady=5)
+
+delay_button = ttk.Button(window, text="Delay", command=lambda: handle_effect("delay"))
+delay_button.grid(row=9, column=2, padx=5, pady=5)
+
+wah_button = ttk.Button(window, text="Wah", command=lambda: handle_effect("wah"))
+wah_button.grid(row=9, column=3, padx=5, pady=5)
+
+# Label for selected effect
+effect_label = ttk.Label(window, text=f"Selected Effect: {user_input}")
+effect_label.grid(row=11, column=0, columnspan=2, padx=5, pady=5)
 
 # Run the Tkinter event loop
 window.mainloop()
