@@ -64,11 +64,13 @@ void loop() {
   #ifdef DEBUG
   gAudioEffectGesture.printEffect();
   #endif
+  __disable_irq();
   float potentData = gPotentiometer.getConvertedData();
   gAudioEffectGesture.updatePotentiometer(potentData); 
   float accelData = gAccel.getZDegrees();
   gAudioEffectGesture.updateAccelerometer(accelData);
   gAudioEffectGesture.applyPeakingCoefficients();
+  __enable_irq();
   delay(100); // Delay before next iteration
 }
 

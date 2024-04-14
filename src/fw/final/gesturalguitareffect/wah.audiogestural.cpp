@@ -21,13 +21,11 @@ void AudioEffectGesture::peakingCoefficients(float G, float fc, float Q, float f
     }
 
     // Assign the coefficients to the provided arrays
-    __disable_irq();
     mb0 = b0;
     mb1 = b1;
     mb2 = b2;
     ma1 = a1;
     ma2 = a2;
-    __enable_irq();
 }
 
 void AudioEffectGesture::applyPeakingCoefficients() {

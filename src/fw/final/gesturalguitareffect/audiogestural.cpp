@@ -9,9 +9,8 @@ AudioEffectGesture::AudioEffectGesture()
   mDepth = 0.5;
   mRate = MAX_RATE;
 
-  mDelayRatios[0] = 0.45f;
-  for (int i = 1; i < MAX_NUMBER_DELAY_REPEATS; ++i) {
-      mDelayRatios[i] = mDelayRatios[i - 1] * 0.45;
+  for (int i = 0; i < MAX_NUMBER_DELAY_REPEATS; ++i) {
+      mDelayRatios[i] = pow(0.65, i + 1);
   }
 
   mCurrentNumberDelayRepeats = MAX_NUMBER_DELAY_REPEATS;
