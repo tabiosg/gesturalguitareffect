@@ -172,7 +172,7 @@ def start_playback():
                 applyBiquad(input, output)
 
                 for i in range(CHUNK_SIZE):
-                    chunk[i] = int(output[i] * 32768.0)
+                    chunk[i] = int(float(output[i]) * 32768.0)
 
             # Convert back to bytes
             output_data = chunk.astype(np.int16).tobytes()
@@ -249,7 +249,7 @@ gain_label = ttk.Label(window, text="Wah: mCurrentGain:")
 gain_label.grid(row=7, column=0, padx=5, pady=5)
 
 # Slider to control mCurrentGain
-gain_slider = ttk.Scale(window, from_=-30, to=30, orient=tk.HORIZONTAL, length=200)
+gain_slider = ttk.Scale(window, from_=-20, to=20, orient=tk.HORIZONTAL, length=200)
 gain_slider.set(mCurrentGain)
 gain_slider.grid(row=7, column=1, padx=5, pady=5)
 
@@ -266,31 +266,40 @@ frequency_slider.grid(row=8, column=1, padx=5, pady=5)
 def update_rate(value):
     global mRate
     mRate = int(value)
+    rate_label.config(text=f"mRate: {mRate}")
 
 # Function to update mDepth variable when its slider is moved
 def update_depth(value):
     global mDepth
     mDepth = float(value)
+    depth_label.config(text=f"mDepth: {mDepth}")
 
 # Function to update mCurrentGain variable when its slider is moved
 def update_gain(value):
     global mCurrentGain
     mCurrentGain = int(value)
+    peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
+    gain_label.config(text=f"mCurrentGain: {mCurrentGain}")
 
 # Function to update mCurrentCenterFrequency variable when its slider is moved
 def update_frequency(value):
     global mCurrentCenterFrequency
     mCurrentCenterFrequency = int(value)
+    peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
+    frequency_label.config(text=f"mCurrentCenterFrequency: {mCurrentCenterFrequency}")
 
 # Function to update mCurrentNumberDelayRepeats variable when its slider is moved
 def update_delay_repeats(value):
     global mCurrentNumberDelayRepeats
     mCurrentNumberDelayRepeats = int(value)
+    delay_repeats_label.config(text=f"mCurrentNumberDelayRepeats: {mCurrentNumberDelayRepeats}")
+
 
 # Function to update mCurrentDelayStepSize variable when its slider is moved
 def update_delay_step(value):
     global mCurrentDelayStepSize
     mCurrentDelayStepSize = int(value)
+    delay_step_label.config(text=f"mCurrentDelayStepSize: {mCurrentDelayStepSize}")
 
 # Bind functions to slider events
 rate_slider.bind("<Motion>", lambda event: update_rate(rate_slider.get()))
