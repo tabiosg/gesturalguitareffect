@@ -72,7 +72,7 @@ def apply_delay(block):
             else:
                 mWriteIndex += 1
 
-def peaking_coefficients(G, fc, Q, fs):
+def peaking_coefficients(G, fc, Q=1.0, fs=44100.0):
     global b0, b1, b2, a1, a2
 
     K = math.tan(math.pi * fc / fs)
@@ -92,10 +92,15 @@ def peaking_coefficients(G, fc, Q, fs):
         a2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
     
 
+mCurrentGain = 20
+mCurrentCenterFrequency = -500
+
+peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
+
 def applyBiquad(input, output):
     global x1, x2, y1, y2
     for i in range(CHUNK_SIZE):
-        y0 = (b0) * input[i] + (b1) * x1 + (b2) * x2 - (a1) * y1 - (a2) * y2;
+        y0 = (b0) * input[i] + (b1) * x1 + (b2) * x2 - (a1) * y1 - (a2) * y2
         x2 = x1
         x1 = input[i]
         y2 = y1
@@ -167,7 +172,7 @@ def start_playback():
                 applyBiquad(input, output)
 
                 for i in range(CHUNK_SIZE):
-                    chunk[i] = int(output[i] * 32768.0) * 0.5
+                    chunk[i] = int(output[i] * 32768.0)
 
             # Convert back to bytes
             output_data = chunk.astype(np.int16).tobytes()
