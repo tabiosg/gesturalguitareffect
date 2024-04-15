@@ -229,16 +229,16 @@ def change_song_name_index(index):
     playing_label.config(text=f"Playing song: {song_names[song_name_index]}")
 
 change_song_name_index_0 = ttk.Button(window, text=f"Change song to {song_names[0]}", command=lambda: change_song_name_index(0))
-change_song_name_index_0.grid(row=1, column=0, columnspan=1, padx=5, pady=5)
+change_song_name_index_0.grid(row=1, column=0, padx=5, pady=5)
 
 change_song_name_index_1 = ttk.Button(window, text=f"Change song to {song_names[1]}", command=lambda: change_song_name_index(1))
-change_song_name_index_1.grid(row=1, column=1, columnspan=1, padx=5, pady=5)
+change_song_name_index_1.grid(row=1, column=1, padx=5, pady=5)
 
 change_song_name_index_2 = ttk.Button(window, text=f"Change song to {song_names[2]}", command=lambda: change_song_name_index(2))
-change_song_name_index_2.grid(row=1, column=2, columnspan=1, padx=5, pady=5)
+change_song_name_index_2.grid(row=1, column=2, padx=5, pady=5)
 
 change_song_name_index_3 = ttk.Button(window, text=f"Change song to {song_names[3]}", command=lambda: change_song_name_index(3))
-change_song_name_index_3.grid(row=1, column=3, columnspan=1, padx=5, pady=5)
+change_song_name_index_3.grid(row=1, column=3, padx=5, pady=5)
 
 # Button to start playback
 start_button = ttk.Button(window, text="Resume Playback", command=resume_playing)
