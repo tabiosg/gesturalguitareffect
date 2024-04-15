@@ -71,7 +71,7 @@ void loop() {
   gAudioEffectGesture.updateAccelerometer(-accelData);
   gAudioEffectGesture.applyPeakingCoefficients();
   __enable_irq();
-  delay(100); // Delay before next iteration
+  delay(33); // Delay before next iteration
 }
 
 void doNoneEffect() {

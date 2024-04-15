@@ -20,7 +20,7 @@
 #define RATE_RESOLUTION 10
 #define DEPTH_RESOLUTION 10
 
-#define ACCEL_MAX_DEG_FOR_INPUT 50 // Degrees since we noticed that anything above 50 degrees is not too accurate.
+#define ACCEL_MAX_DEG_FOR_INPUT 30 // Degrees since we noticed that anything above 50 degrees is not too accurate. -- but 50 degrees is a lot to move
 #define ACCEL_DEG_THRESHOLDING 1
 
 #define ACCEL_CALLS_TO_WAIT_BEFORE_UPDATING_AGAIN 3
