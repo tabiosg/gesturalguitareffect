@@ -120,12 +120,16 @@ def update_tremolo(block, initialWriteIndex):
         else:
             initialWriteIndex += 1
 
+mp3_file = "sunflower.mp3"
+
 def resume_playing():
     global stop_flag
     stop_flag = False
+    playing_label.config(text=f"Playing song: {mp3_file}")
 
 # Function to start audio playback
 def start_playback():
+    global mp3_file
     global stop_flag
     stop_flag = False
     global user_input
@@ -147,7 +151,17 @@ def start_playback():
     print("Playing...")
 
     while True:
+        file_name_to_play = mp3_file
+
+        audio_segment = AudioSegment.from_file(file_name_to_play, format='mp3')
+    
+        audio_data = np.array(audio_segment.get_array_of_samples())
+
         for i in range(0, len(audio_data), CHUNK_SIZE):
+            if file_name_to_play != mp3_file:
+                # mp3_file changed
+                file_name_to_play = mp3_file
+                break
 
             while stop_flag:
                 pass
@@ -192,18 +206,22 @@ playback_thread.start()
 def pause_playback():
     global stop_flag
     stop_flag = True
+    playing_label.config(text=f"Playing song: {mp3_file}")
 
 # Create a Tkinter window
 window = tk.Tk()
 window.title("Audio Effects Control")
 
+playing_label = ttk.Label(window, text=f"Playing song: {mp3_file}")
+playing_label.grid(row=1, column=0, padx=5, pady=5)
+
 # Button to start playback
 start_button = ttk.Button(window, text="Resume Playback", command=resume_playing)
-start_button.grid(row=1, column=0, padx=5, pady=5)
+start_button.grid(row=1, column=1, padx=5, pady=5)
 
 # Button to stop playback
 stop_button = ttk.Button(window, text="Pause Playback", command=pause_playback)
-stop_button.grid(row=1, column=1, padx=5, pady=5)
+stop_button.grid(row=1, column=2, padx=5, pady=5)
 
 # Function to update effect based on user selection
 
@@ -329,7 +347,22 @@ wah_button.grid(row=9, column=3, padx=5, pady=5)
 
 # Label for selected effect
 effect_label = ttk.Label(window, text=f"Selected Effect: {user_input}")
-effect_label.grid(row=11, column=0, columnspan=2, padx=5, pady=5)
+effect_label.grid(row=12, column=0, columnspan=2, padx=5, pady=5)
+
+# Label for selected effect
+selected_mp3_label = ttk.Label(window, text=f"Selected Song: {mp3_file}")
+selected_mp3_label.grid(row=14, column=0, columnspan=2, padx=5, pady=5)
+
+def change_mp3_file(name):
+    global mp3_file
+    mp3_file = name
+    selected_mp3_label.config(text=f"Select Song: {mp3_file}")
+
+delay_button = ttk.Button(window, text="Change song to Sunflower", command=lambda: change_mp3_file("sunflower.mp3"))
+delay_button.grid(row=13, column=0, padx=5, pady=5)
+
+wah_button = ttk.Button(window, text="Change song to Am I Dreaming", command=lambda: change_mp3_file("amidreaming.mp3"))
+wah_button.grid(row=13, column=1, padx=5, pady=5)
 
 # Run the Tkinter event loop
 window.mainloop()
