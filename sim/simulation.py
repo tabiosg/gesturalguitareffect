@@ -24,12 +24,12 @@ CHANNELS = 2
 MAX_NUMBER_DELAY_REPEATS = 10
 MIN_NUMBER_DELAY_REPEATS = 2
 
-mCurrentNumberDelayRepeats = 5
+mCurrentNumberDelayRepeats = 10
 mCurrentDelayStepSize = 4410
 
 mRate = 8
 mDepth = 0.3
-mDelayRatios = [pow(0.45, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
+mDelayRatios = [pow(0.50, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
 
 a1 = 0
 a2 = 0
