@@ -24,10 +24,10 @@ CHANNELS = 2
 MAX_NUMBER_DELAY_REPEATS = 10
 MIN_NUMBER_DELAY_REPEATS = 2
 
-mCurrentNumberDelayRepeats = 10
-mCurrentDelayStepSize = 100
+mCurrentNumberDelayRepeats = 5
+mCurrentDelayStepSize = 4410
 
-mRate = 1
+mRate = 8
 mDepth = 0.3
 mDelayRatios = [pow(0.45, i + 1) for i in range(MAX_NUMBER_DELAY_REPEATS)]
 
@@ -73,35 +73,44 @@ def apply_delay(block):
             else:
                 mWriteIndex += 1
 
+lock = threading.Lock()
+
 def peaking_coefficients(G, fc, Q=1.0, fs=44100.0):
     global b0, b1, b2, a1, a2
 
-    K = math.tan(math.pi * fc / fs)
-    V0 = pow(10, G / 20)
-    
-    if G >= 0:
-        b0 = (1 + ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
-        b1 = (2 * (pow(K, 2) - 1)) / (1 + ((1 / Q) * K) + pow(K, 2))
-        b2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
-        a1 = b1
-        a2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
-    else:
-        b0 = (1 + ((1 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
-        b1 = (2 * (pow(K, 2) - 1)) / (1 + ((V0 / Q) * K) + pow(K, 2))
-        b2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
-        a1 = b1
-        a2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+    with lock:
+        K = math.tan(math.pi * fc / fs)
+        V0 = pow(10, G / 20)
+        
+        if G >= 0:
+            b0 = (1 + ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
+            b1 = (2 * (pow(K, 2) - 1)) / (1 + ((1 / Q) * K) + pow(K, 2))
+            b2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
+            a1 = b1
+            a2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((1 / Q) * K) + pow(K, 2))
+        else:
+            b0 = (1 + ((1 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+            b1 = (2 * (pow(K, 2) - 1)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+            b2 = (1 - ((1 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
+            a1 = b1
+            a2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
     
 
-mCurrentGain = -12
-mCurrentCenterFrequency = 500
+mCurrentGain = 12
+mCurrentCenterFrequency = 5000
 
 peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
 
 def applyBiquad(input, output):
+    global b0, b1, b2, a1, a2
     global x1, x2, y1, y2
+
+    with lock:
+        usedb0, usedb1, usedb2, useda1, useda2 = b0, b1, b2, a1, a2
+
+    
     for i in range(CHUNK_SIZE):
-        y0 = (b0) * input[i] + (b1) * x1 + (b2) * x2 - (a1) * y1 - (a2) * y2
+        y0 = (usedb0) * input[i] + (usedb1) * x1 + (usedb2) * x2 - (useda1) * y1 - (useda2) * y2
         x2 = x1
         x1 = input[i]
         y2 = y1
@@ -194,6 +203,7 @@ def start_playback():
                 applyBiquad(input, output)
 
                 for i in range(CHUNK_SIZE):
+                    output[i] /= 3.3
                     chunk[i] = int(float(output[i]) * 32768.0)
 
             # Convert back to bytes
@@ -274,7 +284,7 @@ delay_repeats_label = ttk.Label(window, text=f"Delay - Repetitions: {mCurrentNum
 delay_repeats_label.grid(row=4, column=2, padx=5, pady=5)
 
 # Slider to control mCurrentNumberDelayRepeats
-delay_repeats_slider = ttk.Scale(window, from_=2, to=10, orient=tk.HORIZONTAL, length=200)
+delay_repeats_slider = ttk.Scale(window, from_=MIN_NUMBER_DELAY_REPEATS, to=MAX_NUMBER_DELAY_REPEATS, orient=tk.HORIZONTAL, length=200)
 delay_repeats_slider.set(mCurrentNumberDelayRepeats)
 delay_repeats_slider.grid(row=5, column=2, padx=5, pady=5)
 
@@ -292,7 +302,7 @@ gain_label = ttk.Label(window, text=f"Wah - Gain: {mCurrentGain}")
 gain_label.grid(row=4, column=3, padx=5, pady=5)
 
 # Slider to control mCurrentGain
-gain_slider = ttk.Scale(window, from_=-12, to=0, orient=tk.HORIZONTAL, length=200)
+gain_slider = ttk.Scale(window, from_=-12, to=12, orient=tk.HORIZONTAL, length=200)
 gain_slider.set(mCurrentGain)
 gain_slider.grid(row=5, column=3, padx=5, pady=5)
 
@@ -337,7 +347,6 @@ def update_delay_repeats(value):
     mCurrentNumberDelayRepeats = int(value)
     delay_repeats_label.config(text=f"Delay - Repetitions: {mCurrentNumberDelayRepeats}")
 
-
 # Function to update mCurrentDelayStepSize variable when its slider is moved
 def update_delay_step(value):
     global mCurrentDelayStepSize
@@ -359,16 +368,25 @@ def handle_effect(effect):
     effect_label.config(text=f"Selected Effect: {user_input}")
 
 # Buttons for effect selection
-none_button = ttk.Button(window, text="None", command=lambda: handle_effect("none"))
+style = ttk.Style()
+style.configure("Black.TButton", background='gray')
+none_button = ttk.Button(window, text="None", style="Black.TButton", command=lambda: handle_effect("none"))
 none_button.grid(row=11, column=0, padx=5, pady=5)
 
-tremolo_button = ttk.Button(window, text="Tremolo", command=lambda: handle_effect("tremolo"))
+style = ttk.Style()
+style.configure("Green.TButton", background='green')
+tremolo_button = ttk.Button(window, text="Tremolo", style="Green.TButton", command=lambda: handle_effect("tremolo"))
 tremolo_button.grid(row=11, column=1, padx=5, pady=5)
 
-delay_button = ttk.Button(window, text="Delay", command=lambda: handle_effect("delay"))
+style = ttk.Style()
+# Configure the style for a TButton to be red
+style.configure("Red.TButton", background='red')
+delay_button = ttk.Button(window, text="Delay", style="Red.TButton", command=lambda: handle_effect("delay"))
 delay_button.grid(row=11, column=2, padx=5, pady=5)
 
-wah_button = ttk.Button(window, text="Wah", command=lambda: handle_effect("wah"))
+style = ttk.Style()
+style.configure("Yellow.TButton", background='yellow')
+wah_button = ttk.Button(window, text="Wah", style="Yellow.TButton", command=lambda: handle_effect("wah"))
 wah_button.grid(row=11, column=3, padx=5, pady=5)
 
 # Label for selected effect
