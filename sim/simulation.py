@@ -93,8 +93,8 @@ def peaking_coefficients(G, fc, Q=1.0, fs=44100.0):
         a2 = (1 - ((V0 / Q) * K) + pow(K, 2)) / (1 + ((V0 / Q) * K) + pow(K, 2))
     
 
-mCurrentGain = 10
-mCurrentCenterFrequency = -500
+mCurrentGain = -12
+mCurrentCenterFrequency = 500
 
 peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
 
@@ -120,22 +120,25 @@ def update_tremolo(block, initialWriteIndex):
         else:
             initialWriteIndex += 1
 
-mp3_file = "sunflower.mp3"
+song_names = ["sunflower.mp3", "amidreaming.mp3", "annihilate.mp3", "calling.mp3"]
+song_name_index = 0
 
 def resume_playing():
     global stop_flag
     stop_flag = False
-    playing_label.config(text=f"Playing song: {mp3_file}")
+    playing_label.config(text=f"Playing song: {song_names[song_name_index]}")
+
 
 # Function to start audio playback
 def start_playback():
-    global mp3_file
+    global song_name_index
     global stop_flag
     stop_flag = False
     global user_input
 
-    mp3_file = "sunflower.mp3" #input("Please enter your [filename.mp3] file name: ")
-    audio_segment = AudioSegment.from_file(mp3_file, format='mp3')
+    current_song_name_index = song_name_index
+
+    audio_segment = AudioSegment.from_file(song_names[current_song_name_index], format='mp3')
     
     audio_data = np.array(audio_segment.get_array_of_samples())
 
@@ -151,16 +154,19 @@ def start_playback():
     print("Playing...")
 
     while True:
-        file_name_to_play = mp3_file
+        play_next_song_after = True
 
-        audio_segment = AudioSegment.from_file(file_name_to_play, format='mp3')
+        current_song_name_index = song_name_index
+
+        audio_segment = AudioSegment.from_file(song_names[current_song_name_index], format='mp3')
     
         audio_data = np.array(audio_segment.get_array_of_samples())
 
         for i in range(0, len(audio_data), CHUNK_SIZE):
-            if file_name_to_play != mp3_file:
+            if song_name_index != current_song_name_index:
                 # mp3_file changed
-                file_name_to_play = mp3_file
+                play_next_song_after = False
+                current_song_name_index = song_name_index
                 break
 
             while stop_flag:
@@ -195,6 +201,10 @@ def start_playback():
 
             # Play audio through speaker
             stream_out.write(output_data)
+        
+        if play_next_song_after:
+            song_name_index = (song_name_index + 1) % len(song_names)
+        playing_label.config(text=f"Playing song: {song_names[song_name_index]}")
 
     stream_out.stop_stream()
     stream_out.close()
@@ -206,117 +216,133 @@ playback_thread.start()
 def pause_playback():
     global stop_flag
     stop_flag = True
-    playing_label.config(text=f"Playing song: {mp3_file}")
+    playing_label.config(text=f"Pausing song: {song_names[song_name_index]}")
 
 # Create a Tkinter window
 window = tk.Tk()
 window.title("Audio Effects Control")
 
-playing_label = ttk.Label(window, text=f"Playing song: {mp3_file}")
-playing_label.grid(row=1, column=0, padx=5, pady=5)
+def change_song_name_index(index):
+    global song_name_index, stop_flag
+    song_name_index = index
+    stop_flag = False
+    playing_label.config(text=f"Playing song: {song_names[song_name_index]}")
+
+change_song_name_index_0 = ttk.Button(window, text=f"Change song to {song_names[0]}", command=lambda: change_song_name_index(0))
+change_song_name_index_0.grid(row=1, column=0, columnspan=1, padx=5, pady=5)
+
+change_song_name_index_1 = ttk.Button(window, text=f"Change song to {song_names[1]}", command=lambda: change_song_name_index(1))
+change_song_name_index_1.grid(row=1, column=1, columnspan=1, padx=5, pady=5)
+
+change_song_name_index_2 = ttk.Button(window, text=f"Change song to {song_names[2]}", command=lambda: change_song_name_index(2))
+change_song_name_index_2.grid(row=1, column=2, columnspan=1, padx=5, pady=5)
+
+change_song_name_index_3 = ttk.Button(window, text=f"Change song to {song_names[3]}", command=lambda: change_song_name_index(3))
+change_song_name_index_3.grid(row=1, column=3, columnspan=1, padx=5, pady=5)
 
 # Button to start playback
 start_button = ttk.Button(window, text="Resume Playback", command=resume_playing)
-start_button.grid(row=1, column=1, padx=5, pady=5)
+start_button.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
 
 # Button to stop playback
 stop_button = ttk.Button(window, text="Pause Playback", command=pause_playback)
-stop_button.grid(row=1, column=2, padx=5, pady=5)
+stop_button.grid(row=2, column=2, columnspan=2, padx=5, pady=5)
 
-# Function to update effect based on user selection
+playing_label = ttk.Label(window, text=f"Playing song: {song_names[song_name_index]}")
+playing_label.grid(row=3, column=0, columnspan=4, padx=5, pady=5)
 
 # Label for mRate slider
-rate_label = ttk.Label(window, text="Tremolo: mRate:")
-rate_label.grid(row=3, column=0, padx=5, pady=5)
+rate_label = ttk.Label(window, text=f"Tremolo - Rate: {mRate}")
+rate_label.grid(row=4, column=1, padx=5, pady=5)
 
 # Slider to control mRate
 rate_slider = ttk.Scale(window, from_=1, to=15, orient=tk.HORIZONTAL, length=200)
 rate_slider.set(mRate)
-rate_slider.grid(row=3, column=1, padx=5, pady=5)
+rate_slider.grid(row=5, column=1, padx=5, pady=5)
 
 # Label for mDepth slider
-depth_label = ttk.Label(window, text="Tremolo: mDepth:")
-depth_label.grid(row=4, column=0, padx=5, pady=5)
+depth_label = ttk.Label(window, text=f"Tremolo - Depth: {mDepth}")
+depth_label.grid(row=6, column=1, padx=5, pady=5)
 
 # Slider to control mDepth
 depth_slider = ttk.Scale(window, from_=0, to=0.5, orient=tk.HORIZONTAL, length=200)
 depth_slider.set(mDepth)
-depth_slider.grid(row=4, column=1, padx=5, pady=5)
+depth_slider.grid(row=7, column=1, padx=5, pady=5)
 
 # Label for mCurrentNumberDelayRepeats slider
-delay_repeats_label = ttk.Label(window, text="Delay: mCurrentNumberDelayRepeats:")
-delay_repeats_label.grid(row=5, column=0, padx=5, pady=5)
+delay_repeats_label = ttk.Label(window, text=f"Delay - Repetitions: {mCurrentNumberDelayRepeats}")
+delay_repeats_label.grid(row=4, column=2, padx=5, pady=5)
 
 # Slider to control mCurrentNumberDelayRepeats
 delay_repeats_slider = ttk.Scale(window, from_=2, to=10, orient=tk.HORIZONTAL, length=200)
 delay_repeats_slider.set(mCurrentNumberDelayRepeats)
-delay_repeats_slider.grid(row=5, column=1, padx=5, pady=5)
+delay_repeats_slider.grid(row=5, column=2, padx=5, pady=5)
 
 # Label for mCurrentDelayStepSize slider
-delay_step_label = ttk.Label(window, text="Delay: mCurrentDelayStepSize:")
-delay_step_label.grid(row=6, column=0, padx=5, pady=5)
+delay_step_label = ttk.Label(window, text=f"Delay - Length: {mCurrentDelayStepSize}")
+delay_step_label.grid(row=6, column=2, padx=5, pady=5)
 
 # Slider to control mCurrentDelayStepSize
 delay_step_slider = ttk.Scale(window, from_=100, to=int(SAMPLE_RATE / 10.0), orient=tk.HORIZONTAL, length=200)
 delay_step_slider.set(mCurrentDelayStepSize)
-delay_step_slider.grid(row=6, column=1, padx=5, pady=5)
+delay_step_slider.grid(row=7, column=2, padx=5, pady=5)
 
 # Label for mCurrentGain slider
-gain_label = ttk.Label(window, text="Wah: mCurrentGain:")
-gain_label.grid(row=7, column=0, padx=5, pady=5)
+gain_label = ttk.Label(window, text=f"Wah - Gain: {mCurrentGain}")
+gain_label.grid(row=4, column=3, padx=5, pady=5)
 
 # Slider to control mCurrentGain
 gain_slider = ttk.Scale(window, from_=-12, to=0, orient=tk.HORIZONTAL, length=200)
 gain_slider.set(mCurrentGain)
-gain_slider.grid(row=7, column=1, padx=5, pady=5)
+gain_slider.grid(row=5, column=3, padx=5, pady=5)
 
 # Label for mCurrentCenterFrequency slider
-frequency_label = ttk.Label(window, text="Wah: mCurrentCenterFrequency:")
-frequency_label.grid(row=8, column=0, padx=5, pady=5)
+frequency_label = ttk.Label(window, text=f"Wah - Center: {mCurrentCenterFrequency}")
+frequency_label.grid(row=6, column=3, padx=5, pady=5)
 
 # Slider to control mCurrentCenterFrequency
 frequency_slider = ttk.Scale(window, from_=500, to=5000, orient=tk.HORIZONTAL, length=200)
 frequency_slider.set(mCurrentCenterFrequency)
-frequency_slider.grid(row=8, column=1, padx=5, pady=5)
+frequency_slider.grid(row=7, column=3, padx=5, pady=5)
 
 # Function to update mRate variable when its slider is moved
 def update_rate(value):
     global mRate
     mRate = int(value)
-    rate_label.config(text=f"mRate: {mRate}")
+    rate_label.config(text=f"Tremolo - Rate: {mRate}")
 
 # Function to update mDepth variable when its slider is moved
 def update_depth(value):
     global mDepth
     mDepth = float(value)
-    depth_label.config(text=f"mDepth: {mDepth}")
+    depth_label.config(text=f"Tremolo - Depth: {mDepth}")
 
 # Function to update mCurrentGain variable when its slider is moved
 def update_gain(value):
     global mCurrentGain
     mCurrentGain = int(value)
     peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
-    gain_label.config(text=f"mCurrentGain: {mCurrentGain}")
+    gain_label.config(text=f"Wah - Gain: {mCurrentGain}")
 
 # Function to update mCurrentCenterFrequency variable when its slider is moved
 def update_frequency(value):
     global mCurrentCenterFrequency
     mCurrentCenterFrequency = int(value)
     peaking_coefficients(mCurrentGain, mCurrentCenterFrequency, 1.0, 44100.0)
-    frequency_label.config(text=f"mCurrentCenterFrequency: {mCurrentCenterFrequency}")
+    frequency_label.config(text=f"Wah - Center: {mCurrentCenterFrequency}")
 
 # Function to update mCurrentNumberDelayRepeats variable when its slider is moved
 def update_delay_repeats(value):
     global mCurrentNumberDelayRepeats
     mCurrentNumberDelayRepeats = int(value)
-    delay_repeats_label.config(text=f"mCurrentNumberDelayRepeats: {mCurrentNumberDelayRepeats}")
+    delay_repeats_label.config(text=f"Delay - Repetitions: {mCurrentNumberDelayRepeats}")
 
 
 # Function to update mCurrentDelayStepSize variable when its slider is moved
 def update_delay_step(value):
     global mCurrentDelayStepSize
     mCurrentDelayStepSize = int(value)
-    delay_step_label.config(text=f"mCurrentDelayStepSize: {mCurrentDelayStepSize}")
+    delay_step_label.config(text=f"Delay - Length: {mCurrentDelayStepSize}")
 
 # Bind functions to slider events
 rate_slider.bind("<Motion>", lambda event: update_rate(rate_slider.get()))
@@ -334,35 +360,20 @@ def handle_effect(effect):
 
 # Buttons for effect selection
 none_button = ttk.Button(window, text="None", command=lambda: handle_effect("none"))
-none_button.grid(row=9, column=0, padx=5, pady=5)
+none_button.grid(row=11, column=0, padx=5, pady=5)
 
 tremolo_button = ttk.Button(window, text="Tremolo", command=lambda: handle_effect("tremolo"))
-tremolo_button.grid(row=9, column=1, padx=5, pady=5)
+tremolo_button.grid(row=11, column=1, padx=5, pady=5)
 
 delay_button = ttk.Button(window, text="Delay", command=lambda: handle_effect("delay"))
-delay_button.grid(row=9, column=2, padx=5, pady=5)
+delay_button.grid(row=11, column=2, padx=5, pady=5)
 
 wah_button = ttk.Button(window, text="Wah", command=lambda: handle_effect("wah"))
-wah_button.grid(row=9, column=3, padx=5, pady=5)
+wah_button.grid(row=11, column=3, padx=5, pady=5)
 
 # Label for selected effect
 effect_label = ttk.Label(window, text=f"Selected Effect: {user_input}")
-effect_label.grid(row=12, column=0, columnspan=2, padx=5, pady=5)
-
-# Label for selected effect
-selected_mp3_label = ttk.Label(window, text=f"Selected Song: {mp3_file}")
-selected_mp3_label.grid(row=14, column=0, columnspan=2, padx=5, pady=5)
-
-def change_mp3_file(name):
-    global mp3_file
-    mp3_file = name
-    selected_mp3_label.config(text=f"Select Song: {mp3_file}")
-
-delay_button = ttk.Button(window, text="Change song to Sunflower", command=lambda: change_mp3_file("sunflower.mp3"))
-delay_button.grid(row=13, column=0, padx=5, pady=5)
-
-wah_button = ttk.Button(window, text="Change song to Am I Dreaming", command=lambda: change_mp3_file("amidreaming.mp3"))
-wah_button.grid(row=13, column=1, padx=5, pady=5)
+effect_label.grid(row=12, column=0, columnspan=4, padx=5, pady=5)
 
 # Run the Tkinter event loop
 window.mainloop()
