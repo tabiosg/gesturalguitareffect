@@ -47,5 +47,5 @@ int AudioEffectGesture::calculateRepeats(float input) {
 }
 
 int AudioEffectGesture::calculateStepSize(float input) {
-  return map(input * STEP_SIZE_RESOLUTION, -STEP_SIZE_RESOLUTION, STEP_SIZE_RESOLUTION, 100, DELAY_LENGTH / (mCurrentNumberDelayRepeats - 1));
+  return map(input * STEP_SIZE_RESOLUTION, -STEP_SIZE_RESOLUTION, STEP_SIZE_RESOLUTION, MIN_DELAY_STEP_SIZE, MAX_DELAY_STEP_SIZE);
 }

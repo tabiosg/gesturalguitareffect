@@ -1,17 +1,18 @@
 #include <Audio.h>
 #include "guitareffects.h"
 
-#define DELAY_LENGTH 44100
+#define DELAY_LENGTH 88200
 
 #define MAX_NUMBER_DELAY_REPEATS 10  // Needs to be 2 or greater
 #define MIN_NUMER_DELAY_REPEATS 2
-#define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / (MAX_NUMBER_DELAY_REPEATS - 1))
+#define MAX_DELAY_STEP_SIZE (DELAY_LENGTH / (mCurrentNumberDelayRepeats - 1))
+#define MIN_DELAY_STEP_SIZE 4000
 
-#define MIN_CENTER_FREQUENCY 500
-#define MAX_CENTER_FREQUENCY 5000
+#define MIN_CENTER_FREQUENCY 100
+#define MAX_CENTER_FREQUENCY 7000
 #define CENTER_FREQUENCY_RESOLUTION 10
 #define GAIN_RESOLUTION 10
-#define MIN_GAIN -20
+#define MIN_GAIN -10
 #define MAX_GAIN 20
 
 #define REPEATS_RESOLUTION 5
@@ -22,6 +23,7 @@
 #define RATE_RESOLUTION 10
 #define DEPTH_RESOLUTION 10
 
+#define ACCEL_MIN_DEG_FOR_INPUT -20
 #define ACCEL_MAX_DEG_FOR_INPUT 30 // Degrees since we noticed that anything above 50 degrees is not too accurate. -- but 50 degrees is a lot to move
 #define ACCEL_DEG_THRESHOLDING 1
 

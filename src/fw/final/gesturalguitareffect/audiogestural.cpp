@@ -50,7 +50,7 @@ float AudioEffectGesture::convertAccelValueToInput(float value) {
 
   float usable_angle = value;
 
-  usable_angle = usable_angle < -ACCEL_MAX_DEG_FOR_INPUT ? -ACCEL_MAX_DEG_FOR_INPUT : usable_angle;
+  usable_angle = usable_angle < ACCEL_MIN_DEG_FOR_INPUT ? ACCEL_MIN_DEG_FOR_INPUT : usable_angle;
   usable_angle = usable_angle > ACCEL_MAX_DEG_FOR_INPUT ? ACCEL_MAX_DEG_FOR_INPUT : usable_angle;
 
   bool should_use_last_angle = false;
@@ -59,7 +59,7 @@ float AudioEffectGesture::convertAccelValueToInput(float value) {
     --calls_to_wait;
     should_use_last_angle = true;
   }
-  else if (usable_angle == -ACCEL_MAX_DEG_FOR_INPUT || usable_angle == ACCEL_MAX_DEG_FOR_INPUT) {
+  else if (usable_angle == ACCEL_MIN_DEG_FOR_INPUT || usable_angle == ACCEL_MAX_DEG_FOR_INPUT) {
     should_use_last_angle = false;
   }
   else if (fabs(last_angle - usable_angle) < ACCEL_DEG_THRESHOLDING) {
@@ -74,7 +74,7 @@ float AudioEffectGesture::convertAccelValueToInput(float value) {
     last_angle = usable_angle;
   }
 
-  float input = usable_angle / ACCEL_MAX_DEG_FOR_INPUT;
+  float input = (usable_angle - ACCEL_MIN_DEG_FOR_INPUT) * 2.0 / (ACCEL_MAX_DEG_FOR_INPUT - ACCEL_MIN_DEG_FOR_INPUT) - 1.0;
   
   return input;
 }

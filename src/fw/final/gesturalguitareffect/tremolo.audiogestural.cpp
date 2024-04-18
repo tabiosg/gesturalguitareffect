@@ -5,7 +5,7 @@ void AudioEffectGesture::updateTremolo(audio_block_t *block, int startingIndex) 
   float mRateMultiplier = 0.00014240362 * mRate;
   float currentSinArgument = startingIndex * mRateMultiplier;
   for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-    float sincalc = sin(currentSinArgument); // sin(2 * M_PI * static_cast<float>(mWriteIndex) / DELAY_LENGTH * mRate);
+    float sincalc = sin(currentSinArgument); // sin(2 * M_PI * static_cast<float>(mWriteIndex) / SAMPLING_FREQUENCY * mRate);
     float factor = (1.0 - mDepth) + mDepth * sincalc;
     block->data[i] *= factor;
 
