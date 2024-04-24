@@ -1,7 +1,7 @@
 #include <Audio.h>
 #include "guitareffects.h"
 
-#define DELAY_LENGTH 88200
+#define DELAY_LENGTH 44100
 
 #define MAX_NUMBER_DELAY_REPEATS 10  // Needs to be 2 or greater
 #define MIN_NUMER_DELAY_REPEATS 2
