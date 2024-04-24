@@ -1,0 +1,12 @@
+All of the code in data_collection/ was only used during milestone 1 to get more data. This is optional.
+It worked by taking in the serial debug statements printed by the Teensy and plotting that data afterward.
+This serial debug feature will not work perfectly with all the newest code changes to the firmware.
+
+All of the code in src/final/gesturalguitareffect is what is needed to be flashed on the Arduino.
+The accelerometer.h and potentiometer.h files are self-explanatory.
+The guitareffects.h describes all of our possible effects in an enum.
+delay.audiogestural.cpp, tremolo.audiogestural.cpp, and wah.audiogestural.cpp have the specific guitar effect implementations.
+audiogestural.cpp and audiogestural.h list the generic functions for the custom AudioStream class.
+gesturalguitareffect.ino has the main logic for collecting data in the loop(), used to update parameters.
+
+Al of the code in sim/ is what is needed to run the sim. 

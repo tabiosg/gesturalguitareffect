@@ -1,0 +1,9 @@
+For the code in data_collection/, nothing is neded except for generic python files.
+
+For the code in fw/final/gesturalguitareffect, all that is necessary is the following:
+The Arduino application along with the Teensy and Audio Shield library.
+
+For the code in sim/, all that is necessary is the following:
+Download mp3 files (preferably, the respective songs), and rename them to be:
+["sunflower.mp3", "amidreaming.mp3", "annihilate.mp3", "calling.mp3"].
+Other than that, generic python files must be downloaded.

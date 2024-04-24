@@ -1,0 +1,9 @@
+To run the main project, flash the Teensy with the code in fw/.
+The buttons are the following, with the brackets representing the parameters for guitar tilt and slider:
+- Black is None
+- Green is Tremolo [Rate/Depth]
+- Red is Delay [Repetitions/Length]
+- Yellow is Wah [Gain/Center]
+
+When running the sim, the GUI itself is self-explanatory, allowing one to switch between different songs and
+change the effects' parameters.
